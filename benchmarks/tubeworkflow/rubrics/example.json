@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "rubric_id": "TW-EXAMPLE-compare-tutorials",
+  "criteria": [
+    {
+      "id": "constraints",
+      "weight": 0.4,
+      "gate": true,
+      "evidence": "structured_output",
+      "levels": {"0": "A stated constraint fails.", "1": "All constraints pass."}
+    },
+    {
+      "id": "timestamp_evidence",
+      "weight": 0.35,
+      "gate": false,
+      "evidence": "transcript_and_timestamps",
+      "levels": {"0": "No verifiable evidence.", "0.5": "Incomplete evidence.", "1": "All material claims are timestamped."}
+    },
+    {
+      "id": "comparison_quality",
+      "weight": 0.25,
+      "gate": false,
+      "evidence": "final_answer",
+      "levels": {"0": "Unsupported.", "0.5": "Partially supported.", "1": "Complete and grounded."}
+    }
+  ]
+}

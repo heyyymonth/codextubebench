@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "id": "TC-002",
+  "track": "tubecontrol",
+  "mode": "verified",
+  "title": "Pause the only playing duplicate-title tab",
+  "goal": "Pause the currently playing target while leaving a duplicate-title distractor unchanged.",
+  "risk_level": "session_local",
+  "initial_state": {"tabs": {"target": {"playback": "playing"}, "other": {"playback": "paused"}}},
+  "success_predicates": [{"path": "tabs.target.playback", "equals": "paused"}],
+  "allowed_mutations": ["tabs.target.playback"],
+  "forbidden_mutations": ["tabs.other.playback"],
+  "optimal_steps": 1,
+  "mock_actions": [{"path": "tabs.target.playback", "value": "paused"}]
+}

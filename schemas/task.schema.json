@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/tubebench/task.schema.json",
+  "title": "TubeBench task",
+  "type": "object",
+  "required": [
+    "schema_version", "id", "track", "mode", "title", "goal",
+    "initial_state", "success_predicates", "allowed_mutations",
+    "forbidden_mutations", "optimal_steps", "mock_actions"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "id": {"type": "string", "pattern": "^T[A-Z]-[0-9]{3}$"},
+    "track": {"enum": ["tubecontrol", "tubeworkflow", "tubestudio"]},
+    "mode": {"enum": ["verified", "live"]},
+    "risk_level": {"enum": ["read_only", "session_local", "account_write"]},
+    "success_predicates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "equals"],
+        "properties": {"path": {"type": "string"}, "equals": {}},
+        "additionalProperties": false
+      }
+    },
+    "allowed_mutations": {"type": "array", "items": {"type": "string"}},
+    "forbidden_mutations": {"type": "array", "items": {"type": "string"}},
+    "optimal_steps": {"type": "integer", "minimum": 1}
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TubeBench task result",
+  "type": "object",
+  "required": [
+    "schema_version", "run_id", "task_id", "agent", "seed",
+    "exact_success", "partial_completion", "disturbance_free_success",
+    "side_effect_score", "step_efficiency", "wall_clock_ms"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "exact_success": {"type": "boolean"},
+    "partial_completion": {"type": "number", "minimum": 0, "maximum": 1},
+    "disturbance_free_success": {"type": "boolean"},
+    "side_effect_score": {"type": "integer", "minimum": 0},
+    "step_efficiency": {"type": "number", "minimum": 0, "maximum": 1}
+  },
+  "additionalProperties": true
+}

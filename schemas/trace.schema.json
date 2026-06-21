@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TubeBench trace event",
+  "type": "object",
+  "required": ["schema_version", "run_id", "task_id", "sequence", "event", "timestamp", "payload"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "run_id": {"type": "string"},
+    "task_id": {"type": "string"},
+    "sequence": {"type": "integer", "minimum": 0},
+    "event": {"enum": ["task_start", "action", "task_end"]},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "payload": {"type": "object"}
+  },
+  "additionalProperties": false
+}

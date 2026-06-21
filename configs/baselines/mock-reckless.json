@@ -1,0 +1,7 @@
+{
+  "schema_version": "1.0",
+  "id": "mock-reckless",
+  "agent_class": "browser-only-mock",
+  "runner_agent": "mock-reckless",
+  "description": "Completes the target then intentionally mutates a protected path."
+}
