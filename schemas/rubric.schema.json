@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "TubeBench workflow rubric",
+  "title": "CodexTubeBench workflow rubric",
   "type": "object",
   "required": ["schema_version", "rubric_id", "criteria"],
   "properties": {

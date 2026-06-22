@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/longformmediabench/live-youtube-task-v0.1.schema.json",
+  "title": "CodexTubeBench live YouTube task",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "task_id",
+    "track",
+    "revision",
+    "category",
+    "url",
+    "title_expected_optional",
+    "channel_expected_optional",
+    "duration_expected_optional",
+    "task_prompt",
+    "allowed_modes",
+    "allowed_tools",
+    "forbidden_actions",
+    "side_effect_policy",
+    "expected_observations",
+    "success_criteria",
+    "verification_requirements",
+    "volatility_level",
+    "reproducibility_notes",
+    "trace_requirements",
+    "human_reference_notes",
+    "evaluation_type",
+    "candidate_metadata"
+  ],
+  "properties": {
+    "schema_version": {"const": "live-youtube-task.v0.1"},
+    "task_id": {"type": "string", "pattern": "^LYT-[0-9]{3}$"},
+    "track": {"const": "live_youtube_v0"},
+    "revision": {"type": "integer", "minimum": 1},
+    "category": {"enum": ["long_form", "live_stream", "long_music"]},
+    "url": {"type": "string", "pattern": "^https://(www\\.)?youtube\\.com/watch\\?"},
+    "title_expected_optional": {"type": ["string", "null"]},
+    "channel_expected_optional": {"type": ["string", "null"]},
+    "duration_expected_optional": {"type": ["number", "null"], "exclusiveMinimum": 0},
+    "task_prompt": {"type": "string", "minLength": 1},
+    "allowed_modes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"enum": ["gui_native", "ui_assisted", "instrumented_browser"]}
+    },
+    "allowed_tools": {"type": "array", "items": {"type": "string"}},
+    "forbidden_actions": {"type": "array", "items": {"type": "string"}},
+    "side_effect_policy": {"type": "object"},
+    "expected_observations": {"type": "array", "items": {"type": "string"}},
+    "success_criteria": {"type": "array", "items": {"type": "string"}},
+    "verification_requirements": {"type": "array", "items": {"type": "string"}},
+    "volatility_level": {"enum": ["low", "medium", "high"]},
+    "reproducibility_notes": {"type": "string"},
+    "trace_requirements": {"type": "array", "items": {"type": "string"}},
+    "human_reference_notes": {"type": ["string", "null"]},
+    "evaluation_type": {
+      "enum": [
+        "exact_state",
+        "timestamp_tolerance",
+        "qualitative_evidence",
+        "side_effect_check",
+        "transcript_presence",
+        "live_state_check"
+      ]
+    },
+    "candidate_metadata": {
+      "type": "object",
+      "required": ["verified_at", "access", "duration_source", "notes"],
+      "properties": {
+        "verified_at": {"type": "string", "format": "date-time"},
+        "access": {"enum": ["public", "public_volatile", "unavailable"]},
+        "duration_source": {"type": "string"},
+        "notes": {"type": "string"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

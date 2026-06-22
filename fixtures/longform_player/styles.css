@@ -1,0 +1,292 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #090b10;
+  color: #f4f6fb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(108, 92, 231, 0.18), transparent 30rem),
+    #090b10;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  align-items: center;
+  padding: 1.5rem clamp(1rem, 4vw, 4rem);
+  border-bottom: 1px solid #262a35;
+  background: rgba(9, 11, 16, 0.88);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(12px);
+}
+
+h1, h2, h3, p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 0;
+  font-size: clamp(1.45rem, 3vw, 2.2rem);
+}
+
+main {
+  width: min(1200px, calc(100% - 2rem));
+  margin: 2rem auto 5rem;
+}
+
+section {
+  margin-bottom: 2rem;
+}
+
+.eyebrow {
+  margin-bottom: 0.3rem;
+  color: #aeb6ca;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.session-meta {
+  color: #aeb6ca;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.task-panel, .submission, .evidence-card {
+  padding: 1.35rem;
+  border: 1px solid #2a2f3b;
+  border-radius: 16px;
+  background: #11141c;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+}
+
+.pill {
+  display: inline-block;
+  margin-bottom: 0.8rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: #2a225c;
+  color: #d8d2ff;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.players {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.player {
+  overflow: hidden;
+  border: 1px solid #2a2f3b;
+  border-radius: 16px;
+  background: #11141c;
+}
+
+.screen {
+  aspect-ratio: 16 / 9;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background:
+    linear-gradient(135deg, rgba(97, 82, 210, 0.38), rgba(20, 23, 34, 0.8)),
+    repeating-linear-gradient(90deg, transparent 0 64px, rgba(255, 255, 255, 0.025) 64px 65px);
+}
+
+.visual-placeholder {
+  color: #b8c0d4;
+  font-size: 0.9rem;
+}
+
+.visual-event {
+  width: 100%;
+  padding: 1rem;
+  border: 3px solid #ff5c65;
+  border-radius: 8px;
+  background: #5b0d15;
+  color: white;
+  text-align: center;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.player-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1rem 0;
+}
+
+.state {
+  align-self: flex-start;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  background: #292e39;
+  color: #d8deed;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.state.playing {
+  background: #0d5a42;
+  color: #b8ffe3;
+}
+
+dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  padding: 0 1rem;
+}
+
+dl div {
+  padding: 0.65rem;
+  border-radius: 8px;
+  background: #171b24;
+}
+
+dt {
+  color: #919ab0;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+dd {
+  margin: 0.2rem 0 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  padding: 1rem;
+  border-top: 1px solid #272c37;
+}
+
+button, input, select, textarea {
+  border: 1px solid #3a4151;
+  border-radius: 8px;
+  background: #191e28;
+  color: #f4f6fb;
+  font: inherit;
+}
+
+button {
+  padding: 0.55rem 0.75rem;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: #8c7dff;
+  background: #29214f;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+
+input, select, textarea {
+  padding: 0.55rem;
+}
+
+.controls input {
+  width: 6rem;
+}
+
+.controls label {
+  align-self: center;
+  color: #aeb6ca;
+  font-size: 0.78rem;
+}
+
+.evidence {
+  display: grid;
+  gap: 1rem;
+}
+
+.evidence-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.55rem;
+}
+
+.cue {
+  width: 100%;
+  text-align: left;
+  line-height: 1.45;
+}
+
+.submission {
+  display: grid;
+  gap: 0.8rem;
+}
+
+textarea {
+  width: 100%;
+  resize: vertical;
+}
+
+fieldset {
+  display: grid;
+  gap: 0.45rem;
+  border: 1px solid #303644;
+  border-radius: 10px;
+}
+
+fieldset label {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.primary {
+  justify-self: start;
+  border-color: #7464eb;
+  background: #5a48d2;
+  font-weight: 800;
+}
+
+.success {
+  color: #8cf3c7;
+}
+
+.error {
+  color: #ff9298;
+}
+
+pre {
+  overflow-x: auto;
+  padding: 1rem;
+  border: 1px solid #303644;
+  border-radius: 10px;
+  background: #11141c;
+}
+
+@media (max-width: 680px) {
+  header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .session-meta {
+    text-align: left;
+  }
+}

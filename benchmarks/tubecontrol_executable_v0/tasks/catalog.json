@@ -1,0 +1,563 @@
+[
+  {
+    "schema_version": "tubecontrol-executable-task.v0.1",
+    "id": "TCE-001",
+    "revision": 1,
+    "suite": "TubeControl-Executable-v0",
+    "title": "Identify the playing media instance",
+    "instruction": "Report the player id of the only media instance that is currently playing. Do not change any player state.",
+    "default_mode": "gui_native",
+    "supported_modes": ["gui_native", "instrumented_browser"],
+    "initial_state": {
+      "players": {
+        "player-a": {"media_id": "systems-lecture", "playback": "paused", "current_time": 320, "duration": 3600, "muted": false, "playback_rate": 1.0},
+        "player-b": {"media_id": "benchmark-talk", "playback": "playing", "current_time": 91, "duration": 2700, "muted": false, "playback_rate": 1.0},
+        "player-c": {"media_id": "design-review", "playback": "paused", "current_time": 600, "duration": 2400, "muted": true, "playback_rate": 1.0}
+      },
+      "audit_log": []
+    },
+    "media": [
+      {"media_id": "systems-lecture", "title": "Reliable Agent Systems", "duration_seconds": 3600, "transcript": [], "chapters": [], "visual_events": []},
+      {"media_id": "benchmark-talk", "title": "Benchmark Design Review", "duration_seconds": 2700, "transcript": [], "chapters": [], "visual_events": []},
+      {"media_id": "design-review", "title": "Long-Form Interface Design", "duration_seconds": 2400, "transcript": [], "chapters": [], "visual_events": []}
+    ],
+    "allowed_action_types": ["observe", "verify"],
+    "allowed_mutations": [],
+    "forbidden_mutations": ["players"],
+    "success": {
+      "state_predicates": [],
+      "answer": {"type": "exact", "value": "player-b"},
+      "verification_requirements": ["playing_player_identified"],
+      "accepted_evidence_channels": ["player_state", "dom_player_state", "screenshot"]
+    },
+    "relevant_spans": [],
+    "human_reference": {"steps": 1, "watched_seconds": 0},
+    "scripted_run": {
+      "observations": [{"channel": "player_state"}],
+      "actions": [{"type": "verify", "name": "playing_player_identified", "channel": "player_state"}],
+      "verifications": ["playing_player_identified"],
+      "final_answer": "player-b"
+    }
+  },
+  {
+    "schema_version": "tubecontrol-executable-task.v0.1",
+    "id": "TCE-002",
+    "revision": 1,
+    "suite": "TubeControl-Executable-v0",
+    "title": "Pause only the playing video",
+    "instruction": "Pause the only playing player and leave both paused distractors unchanged. Verify the final playback states.",
+    "default_mode": "gui_native",
+    "supported_modes": ["gui_native", "instrumented_browser"],
+    "initial_state": {
+      "players": {
+        "player-a": {"media_id": "systems-lecture", "playback": "paused", "current_time": 100, "duration": 3600, "muted": false, "playback_rate": 1.0},
+        "player-b": {"media_id": "benchmark-talk", "playback": "playing", "current_time": 200, "duration": 2700, "muted": false, "playback_rate": 1.0},
+        "player-c": {"media_id": "design-review", "playback": "paused", "current_time": 300, "duration": 2400, "muted": false, "playback_rate": 1.0}
+      },
+      "audit_log": []
+    },
+    "media": [
+      {"media_id": "systems-lecture", "title": "Reliable Agent Systems", "duration_seconds": 3600, "transcript": [], "chapters": [], "visual_events": []},
+      {"media_id": "benchmark-talk", "title": "Benchmark Design Review", "duration_seconds": 2700, "transcript": [], "chapters": [], "visual_events": []},
+      {"media_id": "design-review", "title": "Long-Form Interface Design", "duration_seconds": 2400, "transcript": [], "chapters": [], "visual_events": []}
+    ],
+    "allowed_action_types": ["pause", "observe", "verify"],
+    "allowed_mutations": ["players.player-b.playback"],
+    "forbidden_mutations": ["players.player-a", "players.player-c"],
+    "success": {
+      "state_predicates": [
+        {"path": "players.player-a.playback", "equals": "paused"},
+        {"path": "players.player-b.playback", "equals": "paused"},
+        {"path": "players.player-c.playback", "equals": "paused"}
+      ],
+      "answer": null,
+      "verification_requirements": ["final_playback_state"],
+      "accepted_evidence_channels": ["player_state", "dom_player_state", "screenshot"]
+    },
+    "relevant_spans": [],
+    "human_reference": {"steps": 2, "watched_seconds": 0},
+    "scripted_run": {
+      "observations": [{"channel": "player_state"}],
+      "actions": [
+        {"type": "pause", "player_id": "player-b"},
+        {"type": "verify", "name": "final_playback_state", "channel": "player_state"}
+      ],
+      "verifications": ["final_playback_state"],
+      "final_answer": null
+    },
+    "random_actions": [{"type": "pause", "player_id": "player-a"}]
+  },
+  {
+    "schema_version": "tubecontrol-executable-task.v0.1",
+    "id": "TCE-003",
+    "revision": 1,
+    "suite": "TubeControl-Executable-v0",
+    "title": "Pause all playing videos",
+    "instruction": "Pause every playing player. Leave the player that is already paused unchanged and verify all final states.",
+    "default_mode": "gui_native",
+    "supported_modes": ["gui_native", "instrumented_browser"],
+    "initial_state": {
+      "players": {
+        "player-a": {"media_id": "systems-lecture", "playback": "playing", "current_time": 410, "duration": 3600, "muted": false, "playback_rate": 1.0},
+        "player-b": {"media_id": "benchmark-talk", "playback": "paused", "current_time": 50, "duration": 2700, "muted": false, "playback_rate": 1.0},
+        "player-c": {"media_id": "design-review", "playback": "playing", "current_time": 90, "duration": 2400, "muted": true, "playback_rate": 1.0}
+      },
+      "audit_log": []
+    },
+    "media": [
+      {"media_id": "systems-lecture", "title": "Reliable Agent Systems", "duration_seconds": 3600, "transcript": [], "chapters": [], "visual_events": []},
+      {"media_id": "benchmark-talk", "title": "Benchmark Design Review", "duration_seconds": 2700, "transcript": [], "chapters": [], "visual_events": []},
+      {"media_id": "design-review", "title": "Long-Form Interface Design", "duration_seconds": 2400, "transcript": [], "chapters": [], "visual_events": []}
+    ],
+    "allowed_action_types": ["pause", "observe", "verify"],
+    "allowed_mutations": ["players.player-a.playback", "players.player-c.playback"],
+    "forbidden_mutations": ["players.player-b"],
+    "success": {
+      "state_predicates": [
+        {"path": "players.player-a.playback", "equals": "paused"},
+        {"path": "players.player-b.playback", "equals": "paused"},
+        {"path": "players.player-c.playback", "equals": "paused"}
+      ],
+      "answer": null,
+      "verification_requirements": ["all_players_paused"],
+      "accepted_evidence_channels": ["player_state", "dom_player_state", "screenshot"]
+    },
+    "relevant_spans": [],
+    "human_reference": {"steps": 3, "watched_seconds": 0},
+    "scripted_run": {
+      "observations": [{"channel": "player_state"}],
+      "actions": [
+        {"type": "pause", "player_id": "player-a"},
+        {"type": "pause", "player_id": "player-c"},
+        {"type": "verify", "name": "all_players_paused", "channel": "player_state"}
+      ],
+      "verifications": ["all_players_paused"],
+      "final_answer": null
+    }
+  },
+  {
+    "schema_version": "tubecontrol-executable-task.v0.1",
+    "id": "TCE-004",
+    "revision": 1,
+    "suite": "TubeControl-Executable-v0",
+    "title": "Restore original playback states",
+    "instruction": "Pause player-a for inspection, then restore every player's original playback state before finishing.",
+    "default_mode": "instrumented_browser",
+    "supported_modes": ["gui_native", "instrumented_browser"],
+    "initial_state": {
+      "players": {
+        "player-a": {"media_id": "systems-lecture", "playback": "playing", "current_time": 510, "duration": 3600, "muted": false, "playback_rate": 1.0},
+        "player-b": {"media_id": "benchmark-talk", "playback": "paused", "current_time": 125, "duration": 2700, "muted": false, "playback_rate": 1.0}
+      },
+      "audit_log": []
+    },
+    "media": [
+      {"media_id": "systems-lecture", "title": "Reliable Agent Systems", "duration_seconds": 3600, "transcript": [], "chapters": [], "visual_events": []},
+      {"media_id": "benchmark-talk", "title": "Benchmark Design Review", "duration_seconds": 2700, "transcript": [], "chapters": [], "visual_events": []}
+    ],
+    "allowed_action_types": ["pause", "play", "observe", "verify"],
+    "allowed_mutations": ["players.player-a.playback"],
+    "forbidden_mutations": ["players.player-b"],
+    "success": {
+      "state_predicates": [
+        {"path": "players.player-a.playback", "equals": "playing"},
+        {"path": "players.player-b.playback", "equals": "paused"}
+      ],
+      "answer": null,
+      "verification_requirements": ["original_state_restored"],
+      "accepted_evidence_channels": ["player_state", "dom_player_state", "screenshot"]
+    },
+    "relevant_spans": [],
+    "human_reference": {"steps": 3, "watched_seconds": 0},
+    "scripted_run": {
+      "observations": [{"channel": "dom_player_state"}],
+      "actions": [
+        {"type": "pause", "player_id": "player-a"},
+        {"type": "play", "player_id": "player-a"},
+        {"type": "verify", "name": "original_state_restored", "channel": "dom_player_state"}
+      ],
+      "verifications": ["original_state_restored"],
+      "final_answer": null
+    }
+  },
+  {
+    "schema_version": "tubecontrol-executable-task.v0.1",
+    "id": "TCE-005",
+    "revision": 1,
+    "suite": "TubeControl-Executable-v0",
+    "title": "Seek to a specified timestamp",
+    "instruction": "Seek player-a to 12:30, report the timestamp in seconds, and verify the final position without changing player-b.",
+    "default_mode": "gui_native",
+    "supported_modes": ["gui_native", "instrumented_browser"],
+    "initial_state": {
+      "players": {
+        "player-a": {"media_id": "systems-lecture", "playback": "paused", "current_time": 30, "duration": 3600, "muted": false, "playback_rate": 1.0},
+        "player-b": {"media_id": "benchmark-talk", "playback": "paused", "current_time": 95, "duration": 2700, "muted": false, "playback_rate": 1.0}
+      },
+      "audit_log": []
+    },
+    "media": [
+      {"media_id": "systems-lecture", "title": "Reliable Agent Systems", "duration_seconds": 3600, "transcript": [], "chapters": [], "visual_events": []},
+      {"media_id": "benchmark-talk", "title": "Benchmark Design Review", "duration_seconds": 2700, "transcript": [], "chapters": [], "visual_events": []}
+    ],
+    "allowed_action_types": ["seek", "observe", "verify"],
+    "allowed_mutations": ["players.player-a.current_time"],
+    "forbidden_mutations": ["players.player-b"],
+    "success": {
+      "state_predicates": [{"path": "players.player-a.current_time", "equals": 750.0}],
+      "answer": {
+        "type": "timestamp",
+        "target_spans": [{"media_id": "systems-lecture", "start_seconds": 748, "end_seconds": 752}],
+        "tolerance_seconds": 2
+      },
+      "verification_requirements": ["target_timestamp_verified"],
+      "accepted_evidence_channels": ["player_state", "dom_player_state", "screenshot"]
+    },
+    "relevant_spans": [],
+    "human_reference": {"steps": 2, "watched_seconds": 0},
+    "scripted_run": {
+      "observations": [{"channel": "player_state"}],
+      "actions": [
+        {"type": "seek", "player_id": "player-a", "seconds": 750},
+        {"type": "verify", "name": "target_timestamp_verified", "channel": "player_state"}
+      ],
+      "verifications": ["target_timestamp_verified"],
+      "final_answer": 750
+    }
+  },
+  {
+    "schema_version": "tubecontrol-executable-task.v0.1",
+    "id": "TCE-006",
+    "revision": 1,
+    "suite": "TubeControl-Executable-v0",
+    "title": "Change playback speed",
+    "instruction": "Set player-a to 1.5x playback speed and verify it. Do not alter playback state or player-b.",
+    "default_mode": "gui_native",
+    "supported_modes": ["gui_native", "instrumented_browser"],
+    "initial_state": {
+      "players": {
+        "player-a": {"media_id": "systems-lecture", "playback": "paused", "current_time": 30, "duration": 3600, "muted": false, "playback_rate": 1.0},
+        "player-b": {"media_id": "benchmark-talk", "playback": "paused", "current_time": 95, "duration": 2700, "muted": false, "playback_rate": 2.0}
+      },
+      "audit_log": []
+    },
+    "media": [
+      {"media_id": "systems-lecture", "title": "Reliable Agent Systems", "duration_seconds": 3600, "transcript": [], "chapters": [], "visual_events": []},
+      {"media_id": "benchmark-talk", "title": "Benchmark Design Review", "duration_seconds": 2700, "transcript": [], "chapters": [], "visual_events": []}
+    ],
+    "allowed_action_types": ["set_rate", "observe", "verify"],
+    "allowed_mutations": ["players.player-a.playback_rate"],
+    "forbidden_mutations": ["players.player-a.playback", "players.player-b"],
+    "success": {
+      "state_predicates": [{"path": "players.player-a.playback_rate", "equals": 1.5}],
+      "answer": null,
+      "verification_requirements": ["playback_rate_verified"],
+      "accepted_evidence_channels": ["player_state", "dom_player_state", "screenshot"]
+    },
+    "relevant_spans": [],
+    "human_reference": {"steps": 2, "watched_seconds": 0},
+    "scripted_run": {
+      "observations": [{"channel": "player_state"}],
+      "actions": [
+        {"type": "set_rate", "player_id": "player-a", "value": 1.5},
+        {"type": "verify", "name": "playback_rate_verified", "channel": "player_state"}
+      ],
+      "verifications": ["playback_rate_verified"],
+      "final_answer": null
+    }
+  },
+  {
+    "schema_version": "tubecontrol-executable-task.v0.1",
+    "id": "TCE-007",
+    "revision": 1,
+    "suite": "TubeControl-Executable-v0",
+    "title": "Mute and verify",
+    "instruction": "Mute player-a and verify that it is muted. Leave playback and player-b unchanged.",
+    "default_mode": "gui_native",
+    "supported_modes": ["gui_native", "instrumented_browser"],
+    "initial_state": {
+      "players": {
+        "player-a": {"media_id": "systems-lecture", "playback": "playing", "current_time": 30, "duration": 3600, "muted": false, "playback_rate": 1.0},
+        "player-b": {"media_id": "benchmark-talk", "playback": "paused", "current_time": 95, "duration": 2700, "muted": true, "playback_rate": 1.0}
+      },
+      "audit_log": []
+    },
+    "media": [
+      {"media_id": "systems-lecture", "title": "Reliable Agent Systems", "duration_seconds": 3600, "transcript": [], "chapters": [], "visual_events": []},
+      {"media_id": "benchmark-talk", "title": "Benchmark Design Review", "duration_seconds": 2700, "transcript": [], "chapters": [], "visual_events": []}
+    ],
+    "allowed_action_types": ["set_muted", "observe", "verify"],
+    "allowed_mutations": ["players.player-a.muted"],
+    "forbidden_mutations": ["players.player-a.playback", "players.player-b"],
+    "success": {
+      "state_predicates": [{"path": "players.player-a.muted", "equals": true}],
+      "answer": null,
+      "verification_requirements": ["muted_state_verified"],
+      "accepted_evidence_channels": ["player_state", "dom_player_state", "screenshot"]
+    },
+    "relevant_spans": [],
+    "human_reference": {"steps": 2, "watched_seconds": 0},
+    "scripted_run": {
+      "observations": [{"channel": "player_state"}],
+      "actions": [
+        {"type": "set_muted", "player_id": "player-a", "value": true},
+        {"type": "verify", "name": "muted_state_verified", "channel": "player_state"}
+      ],
+      "verifications": ["muted_state_verified"],
+      "final_answer": null
+    }
+  },
+  {
+    "schema_version": "tubecontrol-executable-task.v0.1",
+    "id": "TCE-008",
+    "revision": 1,
+    "suite": "TubeControl-Executable-v0",
+    "title": "Locate a segment using chapters and transcript",
+    "instruction": "Use the visible chapters or transcript to find when the evaluator architecture section begins. Report the timestamp.",
+    "default_mode": "ui_assisted",
+    "supported_modes": ["ui_assisted", "instrumented_browser"],
+    "initial_state": {
+      "players": {
+        "player-a": {"media_id": "systems-lecture", "playback": "paused", "current_time": 0, "duration": 3600, "muted": false, "playback_rate": 1.0}
+      },
+      "audit_log": []
+    },
+    "media": [
+      {
+        "media_id": "systems-lecture",
+        "title": "Reliable Agent Systems",
+        "duration_seconds": 3600,
+        "transcript": [
+          {"id": "sys-001", "media_id": "systems-lecture", "start_seconds": 1188, "end_seconds": 1208, "text": "Next, at twenty minutes, we begin the evaluator architecture section."},
+          {"id": "sys-002", "media_id": "systems-lecture", "start_seconds": 1208, "end_seconds": 1232, "text": "The evaluator reads immutable traces and oracle snapshots."}
+        ],
+        "chapters": [
+          {"id": "introduction", "label": "Introduction", "start_seconds": 0},
+          {"id": "agent-loop", "label": "Agent loop", "start_seconds": 540},
+          {"id": "evaluator-architecture", "label": "Evaluator architecture", "start_seconds": 1200}
+        ],
+        "visual_events": []
+      }
+    ],
+    "allowed_action_types": ["observe", "seek", "verify"],
+    "allowed_mutations": ["players.player-a.current_time"],
+    "forbidden_mutations": [],
+    "success": {
+      "state_predicates": [],
+      "answer": {
+        "type": "timestamp",
+        "target_spans": [{"media_id": "systems-lecture", "start_seconds": 1198, "end_seconds": 1202}],
+        "tolerance_seconds": 2
+      },
+      "verification_requirements": ["segment_timestamp_verified"],
+      "accepted_evidence_channels": ["transcript", "chapters", "dom_player_state"]
+    },
+    "relevant_spans": [{"media_id": "systems-lecture", "start_seconds": 1188, "end_seconds": 1232}],
+    "human_reference": {"steps": 2, "watched_seconds": 0},
+    "scripted_run": {
+      "observations": [{"channel": "chapters", "chapter_id": "evaluator-architecture"}],
+      "actions": [
+        {"type": "seek", "player_id": "player-a", "seconds": 1200},
+        {"type": "verify", "name": "segment_timestamp_verified", "channel": "chapters"}
+      ],
+      "verifications": ["segment_timestamp_verified"],
+      "final_answer": 1200
+    }
+  },
+  {
+    "schema_version": "tubecontrol-executable-task.v0.1",
+    "id": "TCE-009",
+    "revision": 1,
+    "suite": "TubeControl-Executable-v0",
+    "title": "Answer a timestamp-localized transcript question",
+    "instruction": "Using the visible transcript only, name the three components introduced near 10:00.",
+    "default_mode": "ui_assisted",
+    "supported_modes": ["ui_assisted", "instrumented_browser"],
+    "initial_state": {
+      "players": {
+        "player-a": {"media_id": "systems-lecture", "playback": "paused", "current_time": 0, "duration": 3600, "muted": false, "playback_rate": 1.0}
+      },
+      "audit_log": []
+    },
+    "media": [
+      {
+        "media_id": "systems-lecture",
+        "title": "Reliable Agent Systems",
+        "duration_seconds": 3600,
+        "transcript": [
+          {"id": "sys-components", "media_id": "systems-lecture", "start_seconds": 596, "end_seconds": 614, "text": "The system has three components: a planner, an executor, and a verifier."}
+        ],
+        "chapters": [{"id": "agent-loop", "label": "Agent loop", "start_seconds": 540}],
+        "visual_events": []
+      }
+    ],
+    "allowed_action_types": ["observe", "verify"],
+    "allowed_mutations": [],
+    "forbidden_mutations": ["players"],
+    "success": {
+      "state_predicates": [],
+      "answer": {"type": "contains_all", "values": ["planner", "executor", "verifier"]},
+      "verification_requirements": ["transcript_cue_checked"],
+      "accepted_evidence_channels": ["transcript"]
+    },
+    "relevant_spans": [{"media_id": "systems-lecture", "start_seconds": 596, "end_seconds": 614}],
+    "human_reference": {"steps": 1, "watched_seconds": 0},
+    "scripted_run": {
+      "transcript_only_eligible": true,
+      "observations": [{"channel": "transcript", "cue_id": "sys-components"}],
+      "actions": [{"type": "verify", "name": "transcript_cue_checked", "channel": "transcript"}],
+      "verifications": ["transcript_cue_checked"],
+      "final_answer": "planner, executor, and verifier"
+    }
+  },
+  {
+    "schema_version": "tubecontrol-executable-task.v0.1",
+    "id": "TCE-010",
+    "revision": 1,
+    "suite": "TubeControl-Executable-v0",
+    "title": "Locate a visual-only event",
+    "instruction": "Observe the video timeline and report when the red checksum mismatch banner first appears. The transcript does not mention it.",
+    "default_mode": "gui_native",
+    "supported_modes": ["gui_native"],
+    "initial_state": {
+      "players": {
+        "player-a": {"media_id": "benchmark-talk", "playback": "paused", "current_time": 0, "duration": 2700, "muted": false, "playback_rate": 1.0}
+      },
+      "audit_log": []
+    },
+    "media": [
+      {
+        "media_id": "benchmark-talk",
+        "title": "Benchmark Design Review",
+        "duration_seconds": 2700,
+        "transcript": [],
+        "chapters": [{"id": "demo", "label": "Live demo", "start_seconds": 1380}],
+        "visual_events": [{"id": "checksum-banner", "label": "RED CHECKSUM MISMATCH", "start_seconds": 1455, "end_seconds": 1466}]
+      }
+    ],
+    "allowed_action_types": ["seek", "watch", "observe", "verify"],
+    "allowed_mutations": ["players.player-a.current_time"],
+    "forbidden_mutations": [],
+    "success": {
+      "state_predicates": [],
+      "answer": {
+        "type": "timestamp",
+        "target_spans": [{"media_id": "benchmark-talk", "start_seconds": 1455, "end_seconds": 1459}],
+        "tolerance_seconds": 4
+      },
+      "verification_requirements": ["visual_event_reinspected"],
+      "accepted_evidence_channels": ["video_observation", "screenshot"]
+    },
+    "relevant_spans": [{"media_id": "benchmark-talk", "start_seconds": 1455, "end_seconds": 1466}],
+    "human_reference": {"steps": 3, "watched_seconds": 8},
+    "scripted_run": {
+      "observations": [{"channel": "video_observation"}],
+      "actions": [
+        {"type": "seek", "player_id": "player-a", "seconds": 1452},
+        {"type": "watch", "player_id": "player-a", "seconds": 8},
+        {"type": "verify", "name": "visual_event_reinspected", "channel": "video_observation"}
+      ],
+      "verifications": ["visual_event_reinspected"],
+      "final_answer": 1455
+    }
+  },
+  {
+    "schema_version": "tubecontrol-executable-task.v0.1",
+    "id": "TCE-011",
+    "revision": 1,
+    "suite": "TubeControl-Executable-v0",
+    "title": "Compare two long-form sources",
+    "instruction": "Using the visible transcripts and chapters, compare when Video A and Video B perform verification. Answer in one sentence.",
+    "default_mode": "ui_assisted",
+    "supported_modes": ["ui_assisted", "instrumented_browser"],
+    "initial_state": {
+      "players": {
+        "player-a": {"media_id": "verification-a", "playback": "paused", "current_time": 0, "duration": 3000, "muted": false, "playback_rate": 1.0},
+        "player-b": {"media_id": "verification-b", "playback": "paused", "current_time": 0, "duration": 3300, "muted": false, "playback_rate": 1.0}
+      },
+      "audit_log": []
+    },
+    "media": [
+      {
+        "media_id": "verification-a",
+        "title": "Video A: Incremental Verification",
+        "duration_seconds": 3000,
+        "transcript": [{"id": "verify-a", "media_id": "verification-a", "start_seconds": 900, "end_seconds": 925, "text": "After each action, the agent verifies the changed state before continuing."}],
+        "chapters": [{"id": "verify-loop-a", "label": "Verification loop", "start_seconds": 880}],
+        "visual_events": []
+      },
+      {
+        "media_id": "verification-b",
+        "title": "Video B: Final Verification",
+        "duration_seconds": 3300,
+        "transcript": [{"id": "verify-b", "media_id": "verification-b", "start_seconds": 2800, "end_seconds": 2825, "text": "This workflow verifies only at the end after all actions are complete."}],
+        "chapters": [{"id": "verify-loop-b", "label": "Final checks", "start_seconds": 2760}],
+        "visual_events": []
+      }
+    ],
+    "allowed_action_types": ["observe", "verify"],
+    "allowed_mutations": [],
+    "forbidden_mutations": ["players"],
+    "success": {
+      "state_predicates": [],
+      "answer": {"type": "contains_all", "values": ["video a", "after each action", "video b", "at the end"]},
+      "verification_requirements": ["both_sources_checked"],
+      "accepted_evidence_channels": ["transcript", "chapters"]
+    },
+    "relevant_spans": [
+      {"media_id": "verification-a", "start_seconds": 900, "end_seconds": 925},
+      {"media_id": "verification-b", "start_seconds": 2800, "end_seconds": 2825}
+    ],
+    "human_reference": {"steps": 1, "watched_seconds": 0},
+    "scripted_run": {
+      "transcript_only_eligible": true,
+      "observations": [
+        {"channel": "transcript", "cue_id": "verify-a"},
+        {"channel": "transcript", "cue_id": "verify-b"}
+      ],
+      "actions": [{"type": "verify", "name": "both_sources_checked", "channel": "transcript"}],
+      "verifications": ["both_sources_checked"],
+      "final_answer": "Video A verifies after each action, while Video B verifies only at the end."
+    }
+  },
+  {
+    "schema_version": "tubecontrol-executable-task.v0.1",
+    "id": "TCE-012",
+    "revision": 1,
+    "suite": "TubeControl-Executable-v0",
+    "title": "Detect and report a restored side effect",
+    "instruction": "Inspect the audit log and report the affected state path and whether the disturbance was transient or remained in the final state. Do not change player state.",
+    "default_mode": "instrumented_browser",
+    "supported_modes": ["ui_assisted", "instrumented_browser"],
+    "initial_state": {
+      "players": {
+        "player-a": {"media_id": "systems-lecture", "playback": "paused", "current_time": 0, "duration": 3600, "muted": false, "playback_rate": 1.0},
+        "player-b": {"media_id": "benchmark-talk", "playback": "paused", "current_time": 0, "duration": 2700, "muted": false, "playback_rate": 1.0}
+      },
+      "audit_log": [
+        {"sequence": 3, "path": "players.player-b.muted", "before": false, "after": true, "restored_in_final_state": true}
+      ]
+    },
+    "media": [
+      {"media_id": "systems-lecture", "title": "Reliable Agent Systems", "duration_seconds": 3600, "transcript": [], "chapters": [], "visual_events": []},
+      {"media_id": "benchmark-talk", "title": "Benchmark Design Review", "duration_seconds": 2700, "transcript": [], "chapters": [], "visual_events": []}
+    ],
+    "allowed_action_types": ["observe", "verify"],
+    "allowed_mutations": [],
+    "forbidden_mutations": ["players"],
+    "success": {
+      "state_predicates": [],
+      "answer": {"type": "contains_all", "values": ["players.player-b.muted", "transient"]},
+      "verification_requirements": ["audit_log_checked"],
+      "accepted_evidence_channels": ["audit_log", "dom_player_state"]
+    },
+    "relevant_spans": [],
+    "human_reference": {"steps": 1, "watched_seconds": 0},
+    "scripted_run": {
+      "observations": [{"channel": "audit_log"}],
+      "actions": [{"type": "verify", "name": "audit_log_checked", "channel": "audit_log"}],
+      "verifications": ["audit_log_checked"],
+      "final_answer": "players.player-b.muted was a transient disturbance because it was restored in the final state."
+    }
+  }
+]

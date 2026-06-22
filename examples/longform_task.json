@@ -1,0 +1,98 @@
+{
+  "schema_version": "1.0",
+  "id": "LF-003",
+  "track": "longform_media",
+  "revision": 1,
+  "tier": "L2",
+  "category": "temporal_localization",
+  "title": "Locate a spoken definition",
+  "instruction": "Find the timestamp where the speaker defines temporal observation control and report a one-sentence definition with evidence.",
+  "environment": {
+    "stability": "verified",
+    "fixture_id": "definition-lecture",
+    "fixture_revision": "fixture-v1",
+    "default_mode": "ui_assisted",
+    "supported_modes": ["ui_assisted"],
+    "reset_ref": "fixtures/definition-lecture/reset-v1",
+    "oracle_ref": "fixtures/definition-lecture/oracle-v1"
+  },
+  "mode_policies": {
+    "ui_assisted": {
+      "allowed_channels": ["screenshot", "audio_playback", "pointer_keyboard", "ui_transcript"],
+      "forbidden_channels": ["dom", "media_element", "javascript"]
+    }
+  },
+  "media": [
+    {
+      "media_id": "observation-lecture",
+      "duration_seconds": 3300,
+      "fixture_uri": "fixture://media/observation-lecture",
+      "license": "benchmark-authored",
+      "sha256": "pending-generation",
+      "transcript_ref": "fixtures/transcripts/observation-lecture.json",
+      "chapters_ref": "fixtures/chapters/observation-lecture.json"
+    }
+  ],
+  "ground_truth": {
+    "answer": "The agent actively chooses which temporal slice to observe and pays the cost of that information acquisition.",
+    "relevant_spans": [
+      {
+        "media_id": "observation-lecture",
+        "start_seconds": 1120,
+        "end_seconds": 1148,
+        "label": "spoken definition"
+      }
+    ],
+    "target_timestamps": [
+      {
+        "media_id": "observation-lecture",
+        "start_seconds": 1120,
+        "end_seconds": 1128,
+        "label": "definition begins"
+      }
+    ],
+    "evidence_obligations": [
+      {
+        "id": "definition_evidence",
+        "weight": 1,
+        "alternatives": [
+          [
+            {
+              "channel": "audio_playback",
+              "media_id": "observation-lecture",
+              "start_seconds": 1120,
+              "end_seconds": 1148
+            }
+          ],
+          [
+            {
+              "channel": "ui_transcript",
+              "media_id": "observation-lecture",
+              "cue_ids": ["definition-47", "definition-48"]
+            }
+          ]
+        ]
+      }
+    ],
+    "state_predicates": []
+  },
+  "actions": {
+    "allowed": ["play", "pause", "seek", "open_transcript", "search_transcript", "answer"],
+    "forbidden": ["like", "comment", "subscribe", "save_playlist"],
+    "protected_state": ["account", "unrelated_tabs"]
+  },
+  "evaluation": {
+    "success_type": "span_localization",
+    "localization_tolerance_seconds": 8,
+    "verification_requirements": ["timestamp_reinspection", "answer_evidence_link"],
+    "rubric_ref": null
+  },
+  "human_reference": {
+    "steps": 7,
+    "watched_seconds": 35,
+    "active_seconds": 55,
+    "trajectory_ref": "references/LF-003-human-v1.json"
+  },
+  "budgets": {"max_steps": 24, "max_watch_seconds": 240, "max_wall_clock_seconds": 360},
+  "safety": {"risk_level": "read_only", "writes_enabled": false, "cleanup_ref": "cleanup/read-only-v1"}
+}

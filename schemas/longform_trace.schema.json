@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/tubebench/longform-trace-v1.schema.json",
+  "title": "CodexTubeBench long-form trace event",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "run_id",
+    "task_id",
+    "task_revision",
+    "benchmark_git_revision",
+    "environment_mode",
+    "sequence",
+    "event",
+    "timestamp",
+    "payload"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "run_id": {"type": "string"},
+    "task_id": {"type": "string", "pattern": "^LF-[0-9]{3}$"},
+    "task_revision": {"type": "integer", "minimum": 1},
+    "benchmark_git_revision": {"type": "string", "minLength": 1},
+    "environment_mode": {
+      "enum": [
+        "gui_native",
+        "ui_assisted",
+        "instrumented_browser",
+        "hybrid_enterprise"
+      ]
+    },
+    "sequence": {"type": "integer", "minimum": 0},
+    "event": {
+      "enum": [
+        "task_start",
+        "observation",
+        "action",
+        "tool_call",
+        "media_watch",
+        "channel_access",
+        "verification",
+        "checkpoint",
+        "side_effect",
+        "final_answer",
+        "metrics",
+        "task_end"
+      ]
+    },
+    "timestamp": {"type": "string", "format": "date-time"},
+    "payload": {"type": "object"}
+  },
+  "additionalProperties": false
+}

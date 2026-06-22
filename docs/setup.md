@@ -1,6 +1,9 @@
-# Setup
+# CodexTubeBench Setup
 
-## Mock/replay pilot
+CodexTubeBench is the benchmark name. The Python package and CLI remain
+`tubebench` for backward compatibility.
+
+## Local validation
 
 Requirements:
 
@@ -10,18 +13,24 @@ Requirements:
 Run:
 
 ```bash
-make test validate smoke
+make test validate executable-smoke release-check
 ```
 
-No account, browser, API key, or network access is required.
+No account, API key, or network access is required for validation and fixture
+controls.
 
-## Future verified browser mode
+## Codex fixture runs
 
-Use a dedicated browser profile and benchmark-owned fixtures. Never reuse a
-personal browser profile. Signed-in runs require benchmark-owned OAuth users;
-credentials must remain in an OS keychain or secret manager and must never be
-passed to the model, command line, trace, or repository.
+Start the local fixture with:
 
-Write-capable adapters must fail closed unless the task declares the exact
-mutation, the target resource is allowlisted, and the operator explicitly
-enables writes.
+```bash
+PYTHONPATH=src python3 -m tubebench.cli serve-fixture --port 8765
+```
+
+Then follow `docs/codex_evaluation_protocol.md`.
+
+## Live YouTube runs
+
+Use an isolated, signed-out browser and follow
+`docs/live_youtube_protocol.md`. Never reuse a personal profile or transmit
+credentials, cookies, account identifiers, or unrelated browser state.

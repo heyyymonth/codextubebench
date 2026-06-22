@@ -1,0 +1,270 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/tubebench/longform-task-v1.schema.json",
+  "title": "CodexTubeBench long-form YouTube task",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "id",
+    "track",
+    "revision",
+    "tier",
+    "category",
+    "title",
+    "instruction",
+    "environment",
+    "mode_policies",
+    "media",
+    "ground_truth",
+    "actions",
+    "evaluation",
+    "human_reference",
+    "budgets",
+    "safety"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "id": {"type": "string", "pattern": "^LF-[0-9]{3}$"},
+    "track": {"const": "longform_media"},
+    "revision": {"type": "integer", "minimum": 1},
+    "tier": {"enum": ["L1", "L2", "L3", "L4"]},
+    "category": {
+      "enum": [
+        "media_control",
+        "state_diagnosis",
+        "temporal_localization",
+        "claim_extraction",
+        "summarization",
+        "cross_video_comparison",
+        "playlist_construction",
+        "content_moderation",
+        "enterprise_workflow",
+        "recovery",
+        "state_preservation"
+      ]
+    },
+    "title": {"type": "string", "minLength": 1},
+    "instruction": {"type": "string", "minLength": 1},
+    "environment": {
+      "type": "object",
+      "required": [
+        "stability",
+        "fixture_id",
+        "fixture_revision",
+        "default_mode",
+        "supported_modes",
+        "reset_ref",
+        "oracle_ref"
+      ],
+      "properties": {
+        "stability": {"enum": ["verified", "live"]},
+        "fixture_id": {"type": "string"},
+        "fixture_revision": {"type": "string"},
+        "default_mode": {"$ref": "#/$defs/mode"},
+        "supported_modes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/mode"}
+        },
+        "reset_ref": {"type": "string"},
+        "oracle_ref": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "mode_policies": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"$ref": "#/$defs/modePolicy"}
+    },
+    "media": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "media_id",
+          "duration_seconds",
+          "fixture_uri",
+          "license",
+          "sha256"
+        ],
+        "properties": {
+          "media_id": {"type": "string"},
+          "duration_seconds": {"type": "number", "exclusiveMinimum": 0},
+          "fixture_uri": {"type": "string", "pattern": "^fixture://"},
+          "license": {"type": "string"},
+          "sha256": {"type": "string"},
+          "transcript_ref": {"type": ["string", "null"]},
+          "chapters_ref": {"type": ["string", "null"]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "ground_truth": {
+      "type": "object",
+      "required": [
+        "answer",
+        "relevant_spans",
+        "target_timestamps",
+        "evidence_obligations",
+        "state_predicates"
+      ],
+      "properties": {
+        "answer": {},
+        "relevant_spans": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/span"}
+        },
+        "target_timestamps": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/span"}
+        },
+        "evidence_obligations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "weight", "alternatives"],
+            "properties": {
+              "id": {"type": "string"},
+              "weight": {"type": "number", "exclusiveMinimum": 0},
+              "alternatives": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {"$ref": "#/$defs/evidenceAtom"}
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "state_predicates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "equals"],
+            "properties": {"path": {"type": "string"}, "equals": {}},
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "actions": {
+      "type": "object",
+      "required": ["allowed", "forbidden", "protected_state"],
+      "properties": {
+        "allowed": {"type": "array", "items": {"type": "string"}},
+        "forbidden": {"type": "array", "items": {"type": "string"}},
+        "protected_state": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "evaluation": {
+      "type": "object",
+      "required": [
+        "success_type",
+        "localization_tolerance_seconds",
+        "verification_requirements"
+      ],
+      "properties": {
+        "success_type": {
+          "enum": ["exact_state", "exact_answer", "span_localization", "rubric"]
+        },
+        "localization_tolerance_seconds": {"type": "number", "minimum": 0},
+        "verification_requirements": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "rubric_ref": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "human_reference": {
+      "type": "object",
+      "required": ["steps", "watched_seconds", "active_seconds", "trajectory_ref"],
+      "properties": {
+        "steps": {"type": "number", "minimum": 0},
+        "watched_seconds": {"type": "number", "minimum": 0},
+        "active_seconds": {"type": "number", "minimum": 0},
+        "trajectory_ref": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "budgets": {
+      "type": "object",
+      "required": ["max_steps", "max_watch_seconds", "max_wall_clock_seconds"],
+      "properties": {
+        "max_steps": {"type": "number", "exclusiveMinimum": 0},
+        "max_watch_seconds": {"type": "number", "exclusiveMinimum": 0},
+        "max_wall_clock_seconds": {"type": "number", "exclusiveMinimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "safety": {
+      "type": "object",
+      "required": ["risk_level", "writes_enabled", "cleanup_ref"],
+      "properties": {
+        "risk_level": {"enum": ["read_only", "session_local", "fixture_write"]},
+        "writes_enabled": {"type": "boolean"},
+        "cleanup_ref": {"type": "string"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "mode": {
+      "enum": [
+        "gui_native",
+        "ui_assisted",
+        "instrumented_browser",
+        "hybrid_enterprise"
+      ]
+    },
+    "modePolicy": {
+      "type": "object",
+      "required": ["allowed_channels", "forbidden_channels"],
+      "properties": {
+        "allowed_channels": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string"}
+        },
+        "forbidden_channels": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "span": {
+      "type": "object",
+      "required": ["media_id", "start_seconds", "end_seconds", "label"],
+      "properties": {
+        "media_id": {"type": "string"},
+        "start_seconds": {"type": "number", "minimum": 0},
+        "end_seconds": {"type": "number", "exclusiveMinimum": 0},
+        "label": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "evidenceAtom": {
+      "type": "object",
+      "required": ["channel"],
+      "properties": {
+        "channel": {"type": "string"},
+        "media_id": {"type": "string"},
+        "start_seconds": {"type": "number", "minimum": 0},
+        "end_seconds": {"type": "number", "exclusiveMinimum": 0},
+        "state_path": {"type": "string"},
+        "cue_ids": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

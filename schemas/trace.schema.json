@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "TubeBench trace event",
+  "title": "CodexTubeBench compatibility trace event",
   "type": "object",
   "required": ["schema_version", "run_id", "task_id", "sequence", "event", "timestamp", "payload"],
   "properties": {

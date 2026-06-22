@@ -1,0 +1,79 @@
+{
+  "schema_version": "tubecontrol-executable-trace.v0.1",
+  "run_id": "example-scripted-run",
+  "task_id": "TCE-002",
+  "task_revision": 1,
+  "mode": "gui_native",
+  "agent": "scripted-example",
+  "benchmark_git_revision": "example-revision",
+  "benchmark_git_dirty": false,
+  "started_at": "2026-01-01T00:00:00+00:00",
+  "ended_at": "2026-01-01T00:00:01+00:00",
+  "observations": [
+    {
+      "sequence": 0,
+      "channel": "screenshot",
+      "timestamp": "2026-01-01T00:00:00+00:00"
+    }
+  ],
+  "screenshots": [],
+  "actions": [
+    {
+      "type": "pause",
+      "player_id": "player-b"
+    }
+  ],
+  "browser_tool_calls": [
+    {
+      "sequence": 1,
+      "source": "scripted-example",
+      "name": "pause",
+      "timestamp": "2026-01-01T00:00:00.500000+00:00"
+    }
+  ],
+  "watched_intervals": [],
+  "transcript_cues_used": [],
+  "chapter_ids_used": [],
+  "dom_player_state_reads": [],
+  "verifications": [
+    "final_playback_state"
+  ],
+  "final_answer": null,
+  "final_oracle_state": {
+    "players": {
+      "player-a": {
+        "playback": "paused"
+      },
+      "player-b": {
+        "playback": "paused"
+      },
+      "player-c": {
+        "playback": "paused"
+      }
+    }
+  },
+  "side_effects": {
+    "disturbance_free": true,
+    "critical": false,
+    "incident_count": 0,
+    "severity_points": 0,
+    "incidents": []
+  },
+  "metrics": {
+    "success": true,
+    "grounded_success": true,
+    "disturbance_free_success": true,
+    "step_count": 1,
+    "browser_tool_call_count": 1,
+    "verification_score": 1.0,
+    "side_effect_incident_count": 0,
+    "state_restoration_score": null,
+    "timestamp_localization_error_seconds": null,
+    "watch_time_seconds": 0.0,
+    "watch_ratio": 0.0,
+    "failure_category": null,
+    "weighted_efficiency": 1.0
+  },
+  "passed": true,
+  "errors": []
+}

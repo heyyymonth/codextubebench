@@ -4,6 +4,7 @@ import hashlib
 import json
 import platform
 import random
+import subprocess
 import time
 import uuid
 from copy import deepcopy
@@ -24,6 +25,28 @@ def _utc_now() -> str:
 def _catalog_digest(tasks: list[dict[str, Any]]) -> str:
     payload = json.dumps(tasks, sort_keys=True, separators=(",", ":")).encode()
     return hashlib.sha256(payload).hexdigest()
+
+
+def _git_provenance() -> tuple[str, bool | None]:
+    root = Path(__file__).resolve().parents[2]
+    try:
+        revision = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        return "uncommitted", None
+    dirty = bool(subprocess.run(
+        ["git", "status", "--porcelain"],
+        cwd=root,
+        check=False,
+        capture_output=True,
+        text=True,
+    ).stdout.strip())
+    return revision, dirty
 
 
 def _actions_for(task: dict[str, Any], agent: str) -> list[dict[str, Any]]:
@@ -59,6 +82,7 @@ def run_suite(
     output: Path,
 ) -> dict[str, Any]:
     random.seed(seed)
+    benchmark_git_revision, benchmark_git_dirty = _git_provenance()
     run_id = str(uuid.uuid4())
     started = _utc_now()
     results: list[dict[str, Any]] = []
@@ -124,6 +148,8 @@ def run_suite(
         "started_at": started,
         "finished_at": _utc_now(),
         "benchmark_version": __version__,
+        "benchmark_git_revision": benchmark_git_revision,
+        "benchmark_git_dirty": benchmark_git_dirty,
         "catalog_digest": _catalog_digest(tasks),
         "agent": agent,
         "agent_class": "browser-only-mock",

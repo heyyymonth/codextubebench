@@ -1,27 +1,29 @@
-# Research Roadmap
+# CodexTubeBench Roadmap
 
-## Ready now
+## Current
 
-- Validate 24 task contracts.
-- Exercise exact and side-effect evaluators.
-- Run repeated mock-perfect, mock-noop, and mock-reckless conditions.
-- Test result aggregation and paper-data export.
+- Freeze the CodexTubeBench identity and source-of-truth docs.
+- Preserve and validate the 12 deterministic fixture tasks.
+- Preserve and validate the 12 live YouTube task contracts.
+- Use the failure taxonomy for every new failed or partial Codex trace.
+- Keep mock results labeled as pipeline diagnostics.
 
 ## Next
 
-1. Build a deterministic local YouTube-shaped fixture application.
-2. Add trajectory-level disturbance auditing and reset idempotency checks.
-3. Create benchmark-owned synthetic videos with chapters, manual captions,
-   multilingual captions, and unique transcript phrases.
-4. Record human reference trajectories for hardened TubeControl tasks.
-5. Implement browser-only adapters with isolated profiles.
-6. Calibrate TubeWorkflow rubrics against human labels.
-7. Add controlled-account TubeStudio setup only after write policy review.
+1. Run the deterministic experiment set in
+   `docs/next_codex_experiments.md`.
+2. Add automatic browser/tool-call normalization.
+3. Add generic state-restoration scoring.
+4. Add primary and contributing failure-category fields to evaluated results.
+5. Encode live failures as deterministic fixture variants.
+6. Compare instrumented, GUI-native, and transcript-assisted Codex modes.
+7. Add complete latency and cost telemetry only after repeated-run capture is
+   stable.
 
-## Initial ablations
+## Later
 
-- Generic prompt versus explicit verification loop.
-- Prompt-only versus task-specific skills.
-- Single-agent versus planner/executor decomposition.
-- Browser-only versus separately reported hybrid helpers.
-- Transcript-aware helper versus no transcript helper.
+- encoded benchmark-owned audiovisual fixtures;
+- stronger browser/OS side-effect auditing;
+- multilingual and transcript-missing fixture variants;
+- automated isolated-profile Codex execution;
+- report generation from repeated, frozen Codex aggregates.

@@ -13,6 +13,8 @@ class RunnerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             run_suite(tasks, "mock-perfect", 1, root / "perfect")
+            manifest = (root / "perfect" / "manifest.json").read_text(encoding="utf-8")
+            self.assertIn('"benchmark_git_revision"', manifest)
             perfect = summarize_rows(read_jsonl(root / "perfect/results.jsonl"))
             self.assertEqual(1.0, perfect["disturbance_free_success_rate"])
 

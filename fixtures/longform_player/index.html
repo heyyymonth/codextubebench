@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CodexTubeBench Fixture</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <header>
+      <div>
+        <p class="eyebrow">TubeControl-Executable-v0</p>
+        <h1>CodexTubeBench Player</h1>
+      </div>
+      <div id="session-meta" class="session-meta">Starting session…</div>
+    </header>
+    <main>
+      <section class="task-panel">
+        <p id="task-mode" class="pill"></p>
+        <h2 id="task-title"></h2>
+        <p id="task-instruction"></p>
+      </section>
+      <section>
+        <h2>Media instances</h2>
+        <div id="players" class="players"></div>
+      </section>
+      <section id="evidence-section" hidden>
+        <h2>Visible evidence</h2>
+        <div id="evidence" class="evidence"></div>
+      </section>
+      <section id="audit-section" hidden>
+        <h2>Audit log</h2>
+        <pre id="audit-log"></pre>
+      </section>
+      <section class="submission">
+        <h2>Finish task</h2>
+        <label for="answer">Final answer</label>
+        <textarea id="answer" rows="3" placeholder="Leave blank for state-only tasks"></textarea>
+        <fieldset id="verifications">
+          <legend>Verification performed</legend>
+        </fieldset>
+        <button id="submit-answer" class="primary">Submit answer</button>
+        <p id="status" role="status"></p>
+      </section>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>

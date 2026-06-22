@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.org/tubebench/task.schema.json",
-  "title": "TubeBench task",
+  "title": "CodexTubeBench compatibility task",
   "type": "object",
   "required": [
     "schema_version", "id", "track", "mode", "title", "goal",

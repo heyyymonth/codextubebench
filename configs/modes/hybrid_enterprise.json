@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "mode": "hybrid_enterprise",
+  "observation_channels": [
+    "screenshot",
+    "screen_recording",
+    "audio_playback",
+    "ui_transcript",
+    "ui_captions",
+    "ui_chapters",
+    "ui_description",
+    "ui_comments",
+    "platform_search",
+    "dom",
+    "accessibility_tree",
+    "media_element",
+    "javascript",
+    "local_file",
+    "document",
+    "spreadsheet"
+  ],
+  "action_channels": [
+    "pointer_keyboard",
+    "javascript",
+    "local_file",
+    "document",
+    "spreadsheet"
+  ],
+  "forbidden_channels": ["direct_platform_api"],
+  "logging": {
+    "screenshots": true,
+    "recordings": true,
+    "watched_intervals": true,
+    "channel_access": true,
+    "dom_queries": true,
+    "javascript_calls": true,
+    "file_hashes": true
+  }
+}

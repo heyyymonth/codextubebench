@@ -1,0 +1,383 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/longformmediabench/live-youtube-trace-v0.2.schema.json",
+  "title": "CodexTubeBench private live YouTube trace v0.2",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "run_id",
+    "experiment_id",
+    "attempt_index",
+    "task_id",
+    "task_revision",
+    "track",
+    "category",
+    "mode",
+    "agent",
+    "url",
+    "started_at",
+    "ended_at",
+    "benchmark_git_revision",
+    "benchmark_git_dirty",
+    "availability",
+    "initial_tabs",
+    "initial_media_state",
+    "state_snapshots",
+    "observations",
+    "screenshots",
+    "actions",
+    "browser_tool_calls",
+    "channels_used",
+    "watched_intervals",
+    "final_answer",
+    "final_tabs",
+    "final_media_state",
+    "criteria_results",
+    "verifications",
+    "side_effects",
+    "metrics",
+    "outcome",
+    "passed",
+    "failure_type",
+    "failures",
+    "errors",
+    "qualitative_notes"
+  ],
+  "properties": {
+    "schema_version": {"const": "live-youtube-trace.v0.2"},
+    "run_id": {"type": "string", "minLength": 1},
+    "experiment_id": {"type": "string", "minLength": 1},
+    "attempt_index": {"type": "integer", "minimum": 1},
+    "task_id": {"type": "string", "pattern": "^LYT-[0-9]{3}$"},
+    "task_revision": {"type": "integer", "minimum": 1},
+    "track": {"const": "live_youtube_v0"},
+    "category": {"enum": ["long_form", "live_stream", "long_music"]},
+    "mode": {"enum": ["gui_native", "ui_assisted", "instrumented_browser"]},
+    "agent": {"type": "string", "minLength": 1},
+    "url": {"type": "string", "pattern": "^https://(www\\.)?youtube\\.com/watch\\?"},
+    "started_at": {"type": "string", "format": "date-time"},
+    "ended_at": {"type": "string", "format": "date-time"},
+    "benchmark_git_revision": {"type": "string", "minLength": 7},
+    "benchmark_git_dirty": {"type": ["boolean", "null"]},
+    "availability": {
+      "type": "object",
+      "required": ["status", "checked_at", "ad_observed", "sign_in_required"],
+      "properties": {
+        "status": {"enum": ["available", "volatile", "blocked", "unavailable"]},
+        "checked_at": {"type": "string", "format": "date-time"},
+        "ad_observed": {"type": "boolean"},
+        "sign_in_required": {"type": "boolean"},
+        "live_at_check": {"type": ["boolean", "null"]},
+        "blocker": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "initial_tabs": {"type": "array", "items": {"type": "object"}},
+    "initial_media_state": {"type": "object"},
+    "state_snapshots": {
+      "type": "array",
+      "minItems": 2,
+      "items": {"$ref": "#/$defs/stateSnapshot"}
+    },
+    "observations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/observation"}
+    },
+    "screenshots": {"type": "array", "items": {"type": "string"}},
+    "actions": {"type": "array", "items": {"$ref": "#/$defs/action"}},
+    "browser_tool_calls": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/toolCall"}
+    },
+    "channels_used": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "transcript",
+          "visual",
+          "dom_player_state",
+          "youtube_ui",
+          "mixed",
+          "none"
+        ]
+      }
+    },
+    "watched_intervals": {"type": "array", "items": {"type": "object"}},
+    "final_answer": {},
+    "final_tabs": {"type": "array", "items": {"type": "object"}},
+    "final_media_state": {"type": "object"},
+    "criteria_results": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/criterionResult"}
+    },
+    "verifications": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/verification"}
+    },
+    "side_effects": {
+      "type": "object",
+      "required": ["incident_count", "incidents", "tabs_preserved", "account_state_unchanged"],
+      "properties": {
+        "incident_count": {"type": "integer", "minimum": 0},
+        "incidents": {"type": "array", "items": {"type": "object"}},
+        "tabs_preserved": {"type": "boolean"},
+        "account_state_unchanged": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "metrics": {"type": "object"},
+    "outcome": {
+      "type": "object",
+      "required": [
+        "status",
+        "eligible",
+        "criterion_score",
+        "required_criteria_passed",
+        "reason"
+      ],
+      "properties": {
+        "status": {"enum": ["completed", "partial", "failed", "blocked", "invalid"]},
+        "eligible": {"type": "boolean"},
+        "criterion_score": {"type": "number", "minimum": 0, "maximum": 1},
+        "required_criteria_passed": {"type": "boolean"},
+        "reason": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "passed": {"type": "boolean"},
+    "failure_type": {"type": "string"},
+    "failures": {"type": "array", "items": {"$ref": "#/$defs/failure"}},
+    "errors": {"type": "array", "items": {"type": "string"}},
+    "qualitative_notes": {"type": "object"}
+  },
+  "$defs": {
+    "stateSnapshot": {
+      "type": "object",
+      "required": ["snapshot_id", "sequence", "captured_at", "phase", "tabs", "media"],
+      "properties": {
+        "snapshot_id": {"type": "string"},
+        "sequence": {"type": "integer", "minimum": 1},
+        "captured_at": {"type": "string", "format": "date-time"},
+        "phase": {"enum": ["initial", "intermediate", "final", "restored"]},
+        "tabs": {"type": "array", "items": {"type": "object"}},
+        "media": {"type": "object"},
+        "notes": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "observation": {
+      "type": "object",
+      "required": [
+        "observation_id",
+        "sequence",
+        "observed_at",
+        "channel",
+        "kind",
+        "target",
+        "claim",
+        "value",
+        "confidence",
+        "volatile",
+        "supports_criteria",
+        "source_ref"
+      ],
+      "properties": {
+        "observation_id": {"type": "string"},
+        "sequence": {"type": "integer", "minimum": 1},
+        "observed_at": {"type": "string", "format": "date-time"},
+        "channel": {
+          "enum": [
+            "transcript",
+            "visual",
+            "dom_player_state",
+            "youtube_ui",
+            "mixed",
+            "none"
+          ]
+        },
+        "kind": {
+          "enum": [
+            "availability",
+            "page_metadata",
+            "player_state",
+            "control_presence",
+            "transcript_evidence",
+            "chapter_evidence",
+            "timestamp_evidence",
+            "live_state",
+            "chat_state",
+            "side_effect_check",
+            "error",
+            "other"
+          ]
+        },
+        "target": {"type": "string"},
+        "claim": {"type": "string"},
+        "value": {},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "volatile": {"type": "boolean"},
+        "supports_criteria": {"type": "array", "items": {"type": "string"}},
+        "source_ref": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "action": {
+      "type": "object",
+      "required": [
+        "action_id",
+        "sequence",
+        "attempted_at",
+        "kind",
+        "target",
+        "intent",
+        "input",
+        "expected_effect",
+        "outcome",
+        "observed_effect",
+        "related_observation_ids",
+        "failure_id"
+      ],
+      "properties": {
+        "action_id": {"type": "string"},
+        "sequence": {"type": "integer", "minimum": 1},
+        "attempted_at": {"type": "string", "format": "date-time"},
+        "kind": {"type": "string"},
+        "target": {"type": "string"},
+        "intent": {"type": "string"},
+        "input": {},
+        "expected_effect": {"type": "string"},
+        "outcome": {"enum": ["succeeded", "failed", "blocked", "skipped"]},
+        "observed_effect": {"type": ["string", "null"]},
+        "related_observation_ids": {"type": "array", "items": {"type": "string"}},
+        "failure_id": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "toolCall": {
+      "type": "object",
+      "required": [
+        "tool_call_id",
+        "sequence",
+        "started_at",
+        "ended_at",
+        "tool",
+        "operation",
+        "purpose",
+        "outcome",
+        "duration_ms",
+        "failure_id"
+      ],
+      "properties": {
+        "tool_call_id": {"type": "string"},
+        "sequence": {"type": "integer", "minimum": 1},
+        "started_at": {"type": "string", "format": "date-time"},
+        "ended_at": {"type": "string", "format": "date-time"},
+        "tool": {"type": "string"},
+        "operation": {"type": "string"},
+        "purpose": {"type": "string"},
+        "outcome": {"enum": ["succeeded", "failed", "blocked"]},
+        "duration_ms": {"type": ["number", "null"], "minimum": 0},
+        "failure_id": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "criterionResult": {
+      "type": "object",
+      "required": [
+        "criterion_id",
+        "description",
+        "required",
+        "weight",
+        "status",
+        "score",
+        "evidence_observation_ids",
+        "failure_ids",
+        "notes"
+      ],
+      "properties": {
+        "criterion_id": {"type": "string"},
+        "description": {"type": "string"},
+        "required": {"type": "boolean"},
+        "weight": {"type": "number", "exclusiveMinimum": 0},
+        "status": {"enum": ["pass", "partial", "fail", "blocked", "not_applicable"]},
+        "score": {"type": "number", "minimum": 0, "maximum": 1},
+        "evidence_observation_ids": {"type": "array", "items": {"type": "string"}},
+        "failure_ids": {"type": "array", "items": {"type": "string"}},
+        "notes": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "verification": {
+      "type": "object",
+      "required": [
+        "verification_id",
+        "criterion_id",
+        "performed_at",
+        "method",
+        "status",
+        "evidence_observation_ids",
+        "notes"
+      ],
+      "properties": {
+        "verification_id": {"type": "string"},
+        "criterion_id": {"type": "string"},
+        "performed_at": {"type": "string", "format": "date-time"},
+        "method": {"type": "string"},
+        "status": {"enum": ["pass", "partial", "fail", "blocked"]},
+        "evidence_observation_ids": {"type": "array", "items": {"type": "string"}},
+        "notes": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "failure": {
+      "type": "object",
+      "required": [
+        "failure_id",
+        "observed_at",
+        "stage",
+        "type",
+        "severity",
+        "summary",
+        "recoverable",
+        "recovered",
+        "related_action_id",
+        "related_tool_call_id",
+        "evidence_observation_ids",
+        "recovery_notes"
+      ],
+      "properties": {
+        "failure_id": {"type": "string"},
+        "observed_at": {"type": "string", "format": "date-time"},
+        "stage": {
+          "enum": [
+            "availability",
+            "perception",
+            "grounding",
+            "planning",
+            "action",
+            "verification",
+            "restoration",
+            "runtime",
+            "evaluation"
+          ]
+        },
+        "type": {"type": "string"},
+        "severity": {"enum": ["warning", "error", "fatal"]},
+        "summary": {"type": "string"},
+        "recoverable": {"type": "boolean"},
+        "recovered": {"type": "boolean"},
+        "related_action_id": {"type": ["string", "null"]},
+        "related_tool_call_id": {"type": ["string", "null"]},
+        "evidence_observation_ids": {"type": "array", "items": {"type": "string"}},
+        "recovery_notes": {"type": "string"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
