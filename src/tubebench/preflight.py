@@ -417,10 +417,28 @@ def preflight_fixture(
                 ):
                     errors.append("state-changing preflight action did not change oracle state")
 
+                unauthorized_reset = _request(
+                    f"{session_url}/reset",
+                    method="POST",
+                    body={},
+                    timeout=timeout,
+                )
+                unauthorized_reset_ok = unauthorized_reset.status == 403
+                if not _check(
+                    checks,
+                    "unauthenticated_reset_isolation",
+                    unauthorized_reset_ok,
+                    "unauthenticated hosted reset returns 403",
+                ):
+                    errors.append(
+                        "hosted reset endpoint is exposed without evaluator auth"
+                    )
+
                 reset_response = _request(
                     f"{session_url}/reset",
                     method="POST",
                     body={},
+                    oracle_token=oracle_token,
                     timeout=timeout,
                 )
                 reset_oracle_response = _request(

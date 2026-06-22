@@ -143,10 +143,42 @@ class HostedFixtureEndpointTests(unittest.TestCase):
                 method="POST",
             )
             session_id = json.loads(urlopen(create).read())["session_id"]
+            session_url = f"{base_url}/api/sessions/{session_id}"
             trace_url = f"{base_url}/api/sessions/{session_id}/trace"
             with self.assertRaises(HTTPError) as trace_error:
                 urlopen(trace_url)
             self.assertEqual(403, trace_error.exception.code)
+
+            action = Request(
+                f"{session_url}/actions",
+                data=json.dumps({"type": "pause", "player_id": "player-b"}).encode(),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            urlopen(action).read()
+            reset = Request(
+                f"{session_url}/reset",
+                data=b"{}",
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with self.assertRaises(HTTPError) as reset_error:
+                urlopen(reset)
+            self.assertEqual(403, reset_error.exception.code)
+            authorized_reset = Request(
+                f"{session_url}/reset",
+                data=b"{}",
+                headers={
+                    "Content-Type": "application/json",
+                    "X-Oracle-Token": "test-oracle-token",
+                },
+                method="POST",
+            )
+            reset_view = json.loads(urlopen(authorized_reset).read())
+            self.assertEqual(
+                "playing",
+                reset_view["players"]["player-b"]["playback"],
+            )
 
             authorized_trace = Request(
                 trace_url,
@@ -205,6 +237,10 @@ class FixturePreflightTests(unittest.TestCase):
                 self.assertTrue(
                     all(check["passed"] for check in report["checks"]),
                     report,
+                )
+                self.assertIn(
+                    "unauthenticated_reset_isolation",
+                    {check["name"] for check in report["checks"]},
                 )
 
     def test_http_requires_explicit_loopback_test_flag(self) -> None:

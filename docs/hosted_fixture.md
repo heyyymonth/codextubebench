@@ -77,7 +77,9 @@ one replica and do not add sticky-session or shared-state assumptions.
 
 Hosted mode binds `0.0.0.0:$PORT` and fails closed unless all four required
 `CODEXTUBEBENCH_*` values are present. Its startup JSON and public endpoints
-never include the oracle token.
+never include the oracle token. Hosted reset, oracle, trace export, and session
+deletion require the evaluator's `X-Oracle-Token`; ordinary browser actions and
+submission remain agent-facing.
 
 ## Health and sanitized catalog
 

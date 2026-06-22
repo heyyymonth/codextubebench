@@ -384,6 +384,13 @@ def make_handler(application: FixtureApplication) -> type[BaseHTTPRequestHandler
                 if session is None:
                     self._json(HTTPStatus.NOT_FOUND, {"error": "session not found"})
                     return
+                if (
+                    route == "reset"
+                    and application.surface_type == "hosted_https"
+                    and not self._authorized_oracle()
+                ):
+                    self._json(HTTPStatus.FORBIDDEN, {"error": "oracle token required"})
+                    return
                 with application.lock:
                     if route == "actions":
                         view = session.apply(self._body())

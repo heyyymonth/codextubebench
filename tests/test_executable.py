@@ -154,6 +154,26 @@ class FixtureServerTests(unittest.TestCase):
             )
             oracle = json.loads(urlopen(oracle_request).read())
             self.assertEqual("playing", oracle["players"]["player-b"]["playback"])
+            action_request = Request(
+                f"{base_url}/api/sessions/{session_id}/actions",
+                data=json.dumps(
+                    {"type": "pause", "player_id": "player-b"}
+                ).encode(),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            urlopen(action_request).read()
+            reset_request = Request(
+                f"{base_url}/api/sessions/{session_id}/reset",
+                data=b"{}",
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            reset_view = json.loads(urlopen(reset_request).read())
+            self.assertEqual(
+                "playing",
+                reset_view["players"]["player-b"]["playback"],
+            )
         finally:
             server.shutdown()
             server.server_close()
