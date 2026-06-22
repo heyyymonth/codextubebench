@@ -1,0 +1,33 @@
+{
+  "schema_version": "tubecontrol-executable-trace.v0.1",
+  "run_id": "static-trace-template",
+  "task_id": "TCE-002",
+  "task_revision": 1,
+  "mode": "gui_native",
+  "agent": "codex-static-pages-smoke",
+  "execution_surface": {
+    "type": "manual",
+    "public_url": "./",
+    "fixture_version": "codextubebench-static-fixture.v0.1",
+    "deployment_id": "static-local-preview"
+  },
+  "benchmark_git_revision": "unpublished",
+  "benchmark_git_dirty": null,
+  "started_at": "1970-01-01T00:00:00.000Z",
+  "ended_at": "1970-01-01T00:00:00.000Z",
+  "observations": [],
+  "screenshots": [],
+  "actions": [],
+  "browser_tool_calls": [],
+  "watched_intervals": [],
+  "transcript_cues_used": [],
+  "chapter_ids_used": [],
+  "dom_player_state_reads": [],
+  "verifications": [],
+  "final_answer": "",
+  "final_oracle_state": {},
+  "side_effects": {},
+  "metrics": {},
+  "passed": false,
+  "errors": []
+}

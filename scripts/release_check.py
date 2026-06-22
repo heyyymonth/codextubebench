@@ -23,7 +23,7 @@ PATTERNS = {
 }
 TEXT_SUFFIXES = {
     ".md", ".txt", ".json", ".jsonl", ".yaml", ".yml", ".toml", ".py",
-    ".csv", ".ini", ".cfg", ".sh", ".html", ".css",
+    ".csv", ".ini", ".cfg", ".sh", ".html", ".css", ".js",
 }
 
 

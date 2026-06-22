@@ -1,0 +1,53 @@
+{
+  "schema_version": "codextubebench-static-task.v0.1",
+  "task": {
+    "id": "TCE-002",
+    "title": "Pause only the playing video",
+    "instruction": "Pause the only playing player and leave both paused distractors unchanged. Verify the final playback states.",
+    "mode": "gui_native",
+    "allowed_action_types": [
+      "pause",
+      "observe",
+      "verify"
+    ],
+    "verification_requirements": [
+      "final_playback_state"
+    ]
+  },
+  "players": {
+    "player-a": {
+      "media_id": "systems-lecture",
+      "title": "Reliable Agent Systems",
+      "playback": "paused",
+      "current_time": 100,
+      "duration": 3600,
+      "muted": false,
+      "playback_rate": 1.0,
+      "chapter_id": null,
+      "visual_event": null
+    },
+    "player-b": {
+      "media_id": "benchmark-talk",
+      "title": "Benchmark Design Review",
+      "playback": "playing",
+      "current_time": 200,
+      "duration": 2700,
+      "muted": false,
+      "playback_rate": 1.0,
+      "chapter_id": null,
+      "visual_event": null
+    },
+    "player-c": {
+      "media_id": "design-review",
+      "title": "Long-Form Interface Design",
+      "playback": "paused",
+      "current_time": 300,
+      "duration": 2400,
+      "muted": false,
+      "playback_rate": 1.0,
+      "chapter_id": null,
+      "visual_event": null
+    }
+  },
+  "audit_log": []
+}

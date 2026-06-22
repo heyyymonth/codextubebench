@@ -34,6 +34,12 @@ provider-neutral OCI deployment in `docs/hosted_fixture.md`. Do not run a
 Codex attempt until its HTTPS CLI preflight and browser-visible
 `?preflight=1` check both pass.
 
+If the in-app browser cannot attach to loopback and no dynamic HTTPS deployment
+is available, prepare the limited GitHub Pages fallback in
+`docs/github_pages_fixture.md`. Keep its URL in
+`CODEXTUBEBENCH_STATIC_FIXTURE_URL`; it does not satisfy the dynamic fixture
+contract.
+
 ## Live YouTube runs
 
 Use an isolated, signed-out browser and follow

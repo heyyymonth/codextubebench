@@ -9,6 +9,11 @@ This implementation does not mean a deployment exists. Until an operator
 supplies an approved HTTPS origin and evaluator secret, no Codex attempt may be
 run and no result aggregate may be created.
 
+`CODEXTUBEBENCH_PUBLIC_BASE_URL` is reserved for this dynamic service. Do not
+point it at a static GitHub Pages fallback; use
+`CODEXTUBEBENCH_STATIC_FIXTURE_URL` as documented in
+`github_pages_fixture.md`.
+
 ## Security and topology
 
 - Run exactly one replica. Sessions are in memory and must not be distributed

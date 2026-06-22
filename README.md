@@ -104,6 +104,7 @@ timestamp localization, transcript/channel use, and verification.
 
 See `docs/deterministic_fixture.md`.
 For the gated HTTPS execution surface, see `docs/hosted_fixture.md`.
+For the limited static HTTPS fallback, see `docs/github_pages_fixture.md`.
 
 ### Live YouTube
 
@@ -159,6 +160,7 @@ Partial or not yet automated:
 - `docs/failure_taxonomy.md`
 - `docs/deterministic_fixture.md`
 - `docs/hosted_fixture.md`
+- `docs/github_pages_fixture.md`
 - `docs/live_youtube_protocol.md`
 - `docs/next_codex_experiments.md`
 - `docs/limitations.md`

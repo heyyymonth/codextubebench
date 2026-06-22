@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="codextubebench-static-fixture" content="TCE-002">
+    <title>CodexTubeBench Static Fixture</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header>
+      <div>
+        <p class="eyebrow">Static protocol fallback</p>
+        <h1>CodexTubeBench Player</h1>
+      </div>
+      <p id="deployment-meta" class="deployment-meta">Loading fixture…</p>
+    </header>
+    <main>
+      <aside class="notice">
+        This static page has no evaluator authority and does not score the task.
+        Downloaded traces must remain private and be evaluated with the public
+        CodexTubeBench CLI.
+      </aside>
+      <section class="panel">
+        <p id="task-mode" class="pill"></p>
+        <h2 id="task-title"></h2>
+        <p id="task-instruction"></p>
+      </section>
+      <section>
+        <h2>Media instances</h2>
+        <div id="players" class="players"></div>
+      </section>
+      <section class="panel submission">
+        <h2>Finish task</h2>
+        <label class="verification">
+          <input id="final-state-verification" type="checkbox">
+          Final playback state verified
+        </label>
+        <p>State-only task: the final answer is blank.</p>
+        <button id="submit-answer" class="primary">Submit blank answer</button>
+        <button id="download-trace" disabled>Download private trace</button>
+        <p id="status" role="status"></p>
+      </section>
+    </main>
+    <script src="./app.js"></script>
+  </body>
+</html>
