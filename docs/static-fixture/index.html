@@ -17,32 +17,99 @@
       <p id="deployment-meta" class="deployment-meta">Loading fixture…</p>
     </header>
     <main>
-      <aside class="notice">
-        This static page has no evaluator authority and does not score the task.
-        Downloaded traces must remain private and be evaluated with the public
-        CodexTubeBench CLI.
-      </aside>
-      <section class="panel">
-        <p id="task-mode" class="pill"></p>
-        <h2 id="task-title"></h2>
-        <p id="task-instruction"></p>
-      </section>
-      <section>
-        <h2>Media instances</h2>
-        <div id="players" class="players"></div>
-      </section>
-      <section class="panel submission">
-        <h2>Finish task</h2>
-        <label class="verification">
-          <input id="final-state-verification" type="checkbox">
+      <section
+        id="task-cockpit"
+        class="task-cockpit"
+        data-testid="task-cockpit"
+        data-initial-viewport-contract="390x600"
+      >
+        <div class="task-heading">
+          <div>
+            <p id="task-mode" class="pill"></p>
+            <h2 id="task-title"></h2>
+          </div>
+          <p class="state-only">State-only · blank answer</p>
+        </div>
+        <p
+          id="task-instruction"
+          class="task-instruction"
+          data-testid="task-instruction"
+        ></p>
+
+        <div
+          id="player-state-list"
+          class="player-state-list"
+          data-testid="player-state-list"
+          aria-label="Current playback states"
+        ></div>
+
+        <button
+          id="pause-playing"
+          class="primary task-action"
+          data-testid="pause-playing"
+          aria-keyshortcuts="P Space"
+          disabled
+        >
+          Pause the playing player
+        </button>
+
+        <label
+          class="verification"
+          data-testid="final-state-verification-control"
+        >
+          <input
+            id="final-state-verification"
+            data-testid="final-state-verification"
+            type="checkbox"
+            aria-keyshortcuts="V"
+          >
           Final playback state verified
         </label>
-        <p>State-only task: the final answer is blank.</p>
-        <button id="submit-answer" class="primary">Submit blank answer</button>
-        <button id="download-trace" disabled>Download private trace</button>
-        <button id="copy-trace" disabled>Copy private trace</button>
-        <p id="status" role="status"></p>
+
+        <div class="submission-actions">
+          <button
+            id="submit-answer"
+            class="primary"
+            data-testid="submit-answer"
+          >
+            Submit blank answer
+          </button>
+          <button
+            id="copy-trace"
+            data-testid="copy-trace"
+            aria-keyshortcuts="C"
+            disabled
+          >
+            Copy private trace
+          </button>
+          <button
+            id="download-trace"
+            data-testid="download-trace"
+            disabled
+          >
+            Download trace JSON
+          </button>
+        </div>
+
+        <p
+          id="status"
+          class="status"
+          data-testid="status"
+          role="status"
+        ></p>
+        <p class="shortcut-help">Shortcuts: P/Space pause · V verify · C copy after submit</p>
       </section>
+
+      <details class="details-panel">
+        <summary>Read-only player details</summary>
+        <div id="players" class="players"></div>
+      </details>
+
+      <aside class="notice">
+        This page has no evaluator authority and does not score the task.
+        Exported traces must remain private and be evaluated with the public
+        CodexTubeBench CLI.
+      </aside>
     </main>
     <script src="./app.js"></script>
   </body>

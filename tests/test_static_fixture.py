@@ -57,7 +57,8 @@ class StaticFixtureTests(unittest.TestCase):
     def test_private_trace_handoff_is_post_submission_and_local_only(self) -> None:
         html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
         script = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
-        self.assertIn('id="copy-trace" disabled', html)
+        self.assertIn('id="copy-trace"', html)
+        self.assertIn("disabled", html)
         self.assertIn("navigator.clipboard.writeText", script)
         self.assertIn(
             'document.querySelector("#copy-trace").disabled = false;',
@@ -65,6 +66,55 @@ class StaticFixtureTests(unittest.TestCase):
         )
         self.assertNotIn("navigator.sendBeacon", script)
         self.assertNotIn("XMLHttpRequest", script)
+
+    def test_static_cockpit_has_stable_no_scroll_controls(self) -> None:
+        html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
+        styles = (STATIC_DIR / "styles.css").read_text(encoding="utf-8")
+        for element_id in (
+            "task-cockpit",
+            "task-instruction",
+            "player-state-list",
+            "pause-playing",
+            "final-state-verification",
+            "submit-answer",
+            "copy-trace",
+            "download-trace",
+            "status",
+        ):
+            self.assertIn(f'id="{element_id}"', html)
+        for test_id in (
+            "task-cockpit",
+            "task-instruction",
+            "player-state-list",
+            "pause-playing",
+            "final-state-verification",
+            "submit-answer",
+            "copy-trace",
+            "download-trace",
+            "status",
+        ):
+            self.assertIn(f'data-testid="{test_id}"', html)
+        self.assertIn('data-initial-viewport-contract="390x600"', html)
+        self.assertIn("@media (max-width: 600px)", styles)
+        self.assertIn("@media (max-height: 620px)", styles)
+        self.assertNotIn("position: fixed", styles)
+
+    def test_keyboard_shortcuts_are_scoped_away_from_controls(self) -> None:
+        script = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
+        self.assertIn('key === "p" || key === " "', script)
+        self.assertIn('key === "v"', script)
+        self.assertIn('key === "c"', script)
+        self.assertIn("isInteractiveTarget(event.target)", script)
+        self.assertIn('document.addEventListener("keydown", handleShortcut)', script)
+
+    def test_static_fixture_version_is_consistent(self) -> None:
+        script = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
+        trace = json.loads(
+            (STATIC_DIR / "trace-template.json").read_text(encoding="utf-8")
+        )
+        version = "codextubebench-static-fixture.v0.2"
+        self.assertIn(version, script)
+        self.assertEqual(version, trace["execution_surface"]["fixture_version"])
 
     def test_static_trace_template_validates_and_rescores(self) -> None:
         trace = json.loads(

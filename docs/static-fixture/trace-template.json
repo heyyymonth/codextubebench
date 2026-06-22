@@ -8,7 +8,7 @@
   "execution_surface": {
     "type": "manual",
     "public_url": "./",
-    "fixture_version": "codextubebench-static-fixture.v0.1",
+    "fixture_version": "codextubebench-static-fixture.v0.2",
     "deployment_id": "static-local-preview"
   },
   "benchmark_git_revision": "unpublished",

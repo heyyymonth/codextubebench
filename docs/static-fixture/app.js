@@ -1,4 +1,4 @@
-const STATIC_FIXTURE_VERSION = "codextubebench-static-fixture.v0.1";
+const STATIC_FIXTURE_VERSION = "codextubebench-static-fixture.v0.2";
 
 let fixture = null;
 let deployment = null;
@@ -29,7 +29,7 @@ function formatTime(value) {
 function setStatus(message, error = false) {
   const status = document.querySelector("#status");
   status.textContent = message;
-  status.className = error ? "error" : "success";
+  status.className = error ? "status error" : "status success";
 }
 
 function recordRender(details) {
@@ -41,12 +41,21 @@ function recordRender(details) {
   });
 }
 
+function playingPlayerId() {
+  if (!state) {
+    return null;
+  }
+  const playing = Object.entries(state.players)
+    .filter(([, player]) => player.playback === "playing")
+    .map(([playerId]) => playerId);
+  return playing.length === 1 ? playing[0] : null;
+}
+
 function pausePlayer(playerId) {
-  if (submitted) {
+  if (submitted || !playerId || state.players[playerId].playback !== "playing") {
     return;
   }
-  const action = {type: "pause", player_id: playerId};
-  trace.actions.push(action);
+  trace.actions.push({type: "pause", player_id: playerId});
   trace.browser_tool_calls.push({
     sequence: trace.actions.length,
     source: "static-browser",
@@ -55,13 +64,54 @@ function pausePlayer(playerId) {
   });
   state.players[playerId].playback = "paused";
   recordRender({post_action_render: true});
-  renderPlayers();
-  setStatus(`Recorded pause for ${playerId}.`);
+  renderCockpitStates();
+  renderPlayerDetails();
+  setStatus(`Recorded pause for ${playerId}. Verify all three states.`);
 }
 
-function renderPlayers() {
+function pausePlayingPlayer() {
+  pausePlayer(playingPlayerId());
+}
+
+function renderCockpitStates() {
+  const container = document.querySelector("#player-state-list");
+  container.replaceChildren();
+
+  for (const [playerId, player] of Object.entries(state.players)) {
+    const row = document.createElement("div");
+    row.id = `player-state-${playerId}`;
+    row.className = "player-state-row";
+    row.dataset.testid = `player-state-${playerId}`;
+
+    const identity = document.createElement("span");
+    identity.className = "player-identity";
+    const id = document.createElement("strong");
+    id.textContent = playerId;
+    const title = document.createElement("span");
+    title.textContent = player.title;
+    identity.append(id, title);
+
+    const playback = document.createElement("span");
+    playback.className = `state ${player.playback}`;
+    playback.dataset.testid = `playback-${playerId}`;
+    playback.textContent = player.playback;
+
+    row.append(identity, playback);
+    container.append(row);
+  }
+
+  const playerId = playingPlayerId();
+  const pause = document.querySelector("#pause-playing");
+  pause.disabled = submitted || playerId === null;
+  pause.textContent = playerId
+    ? `Pause ${playerId} — ${state.players[playerId].title}`
+    : "Playing player paused";
+}
+
+function renderPlayerDetails() {
   const container = document.querySelector("#players");
   container.replaceChildren();
+
   for (const [playerId, player] of Object.entries(state.players)) {
     const card = document.createElement("article");
     card.className = "player";
@@ -100,14 +150,7 @@ function renderPlayers() {
       details.append(row);
     }
 
-    const controls = document.createElement("div");
-    controls.className = "controls";
-    const pause = document.createElement("button");
-    pause.textContent = "Pause";
-    pause.disabled = submitted || player.playback === "paused";
-    pause.addEventListener("click", () => pausePlayer(playerId));
-    controls.append(pause);
-    card.append(screen, heading, details, controls);
+    card.append(screen, heading, details);
     container.append(card);
   }
 }
@@ -126,8 +169,9 @@ function submitTrace() {
   document.querySelector("#final-state-verification").disabled = true;
   document.querySelector("#download-trace").disabled = false;
   document.querySelector("#copy-trace").disabled = false;
-  renderPlayers();
-  setStatus("Submitted without scoring. Export the private trace for evaluator review.");
+  renderCockpitStates();
+  renderPlayerDetails();
+  setStatus("Submitted without scoring. Copy or download the private trace.");
 }
 
 function downloadTrace() {
@@ -153,7 +197,40 @@ async function copyTrace() {
     await navigator.clipboard.writeText(`${JSON.stringify(trace, null, 2)}\n`);
     setStatus("Private trace copied for evaluator review.");
   } catch (error) {
-    setStatus("Could not copy the private trace. Use the download control instead.", true);
+    setStatus("Could not copy the private trace. Use download instead.", true);
+  }
+}
+
+function isInteractiveTarget(target) {
+  return target instanceof Element && Boolean(
+    target.closest("button, input, select, textarea, a, [contenteditable='true']"),
+  );
+}
+
+function handleShortcut(event) {
+  if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) {
+    return;
+  }
+  if (isInteractiveTarget(event.target)) {
+    return;
+  }
+
+  const key = event.key.toLowerCase();
+  if (key === "p" || key === " ") {
+    event.preventDefault();
+    pausePlayingPlayer();
+  } else if (key === "v") {
+    const verification = document.querySelector("#final-state-verification");
+    if (!verification.disabled) {
+      verification.checked = !verification.checked;
+      setStatus(
+        verification.checked
+          ? "Final playback state marked verified."
+          : "Final playback state verification cleared.",
+      );
+    }
+  } else if (key === "c" && !document.querySelector("#copy-trace").disabled) {
+    copyTrace();
   }
 }
 
@@ -193,15 +270,18 @@ async function start() {
       fixture.task.instruction;
     document.querySelector("#deployment-meta").textContent =
       `${deployment.deployment_id} · ${deployment.benchmark_git_revision}`;
-    renderPlayers();
+    renderCockpitStates();
+    renderPlayerDetails();
     setStatus("Static fixture ready. No task has been scored.");
   } catch (error) {
     setStatus(error.message, true);
   }
 }
 
+document.querySelector("#pause-playing").addEventListener("click", pausePlayingPlayer);
 document.querySelector("#submit-answer").addEventListener("click", submitTrace);
 document.querySelector("#download-trace").addEventListener("click", downloadTrace);
 document.querySelector("#copy-trace").addEventListener("click", copyTrace);
+document.addEventListener("keydown", handleShortcut);
 
 start();

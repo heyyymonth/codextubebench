@@ -12,6 +12,19 @@ It is not equivalent to the dynamic fixture:
 - no client-side scoring;
 - exported traces are manual/static protocol-validation artifacts.
 
+The initial `task-cockpit` is deliberately no-scroll-first. At supported
+browser sizes it keeps the instruction, all three playback states, the single
+task action, verification, submission, status, copy, and download controls in
+the initial viewport. Full media metadata remains available in the collapsed
+read-only details section below it.
+
+Keyboard operation is available when focus is not already inside a control:
+
+- `P` or Space pauses the sole playing player;
+- `V` toggles final-state verification;
+- `C` copies the trace after submission;
+- Tab and Enter retain their native meanings.
+
 Keep `CODEXTUBEBENCH_PUBLIC_BASE_URL` reserved for the dynamic fixture contract
 documented in `hosted_fixture.md`. Set the eventual static URL separately:
 
