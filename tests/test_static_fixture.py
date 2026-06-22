@@ -108,6 +108,7 @@ class StaticFixtureTests(unittest.TestCase):
         self.assertIn('document.addEventListener("keydown", handleShortcut)', script)
 
     def test_static_fixture_version_is_consistent(self) -> None:
+        html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
         script = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
         trace = json.loads(
             (STATIC_DIR / "trace-template.json").read_text(encoding="utf-8")
@@ -115,6 +116,14 @@ class StaticFixtureTests(unittest.TestCase):
         version = "codextubebench-static-fixture.v0.2"
         self.assertIn(version, script)
         self.assertEqual(version, trace["execution_surface"]["fixture_version"])
+        self.assertIn("./styles.css?fixture=v0.2", html)
+        self.assertIn("./app.js?fixture=v0.2", html)
+        for asset in (
+            "task.json",
+            "trace-template.json",
+            "deployment-metadata.json",
+        ):
+            self.assertIn(f'fetch("./{asset}?fixture=v0.2")', script)
 
     def test_static_trace_template_validates_and_rescores(self) -> None:
         trace = json.loads(

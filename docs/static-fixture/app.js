@@ -237,9 +237,9 @@ function handleShortcut(event) {
 async function start() {
   try {
     const [taskResponse, templateResponse, deploymentResponse] = await Promise.all([
-      fetch("./task.json"),
-      fetch("./trace-template.json"),
-      fetch("./deployment-metadata.json"),
+      fetch("./task.json?fixture=v0.2"),
+      fetch("./trace-template.json?fixture=v0.2"),
+      fetch("./deployment-metadata.json?fixture=v0.2"),
     ]);
     if (!taskResponse.ok || !templateResponse.ok || !deploymentResponse.ok) {
       throw new Error("Static fixture assets are incomplete.");
