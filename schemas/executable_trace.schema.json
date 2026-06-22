@@ -44,6 +44,22 @@
       ]
     },
     "agent": {"type": "string", "minLength": 1},
+    "execution_surface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "public_url",
+        "fixture_version",
+        "deployment_id"
+      ],
+      "properties": {
+        "type": {"enum": ["local", "hosted_https", "provider_runner", "manual"]},
+        "public_url": {"type": "string"},
+        "fixture_version": {"type": "string", "minLength": 1},
+        "deployment_id": {"type": "string", "minLength": 1}
+      }
+    },
     "benchmark_git_revision": {"type": "string", "minLength": 1},
     "benchmark_git_dirty": {"type": ["boolean", "null"]},
     "started_at": {"type": "string", "format": "date-time"},

@@ -72,6 +72,10 @@ The smoke command runs scripted and no-op controls, not Codex.
    PYTHONPATH=src python3 -m tubebench.cli serve-fixture --port 8765
    ```
 
+   If the browser cannot access loopback, deploy the same fixture as the
+   single-replica OCI service documented in `docs/hosted_fixture.md`. A hosted
+   deployment is not currently assumed to exist.
+
 3. Open a task such as:
 
    ```text
@@ -99,6 +103,7 @@ proxy tasks for YouTube failures such as wrong-tab actions, state restoration,
 timestamp localization, transcript/channel use, and verification.
 
 See `docs/deterministic_fixture.md`.
+For the gated HTTPS execution surface, see `docs/hosted_fixture.md`.
 
 ### Live YouTube
 
@@ -153,6 +158,7 @@ Partial or not yet automated:
 - `docs/codex_evaluation_protocol.md`
 - `docs/failure_taxonomy.md`
 - `docs/deterministic_fixture.md`
+- `docs/hosted_fixture.md`
 - `docs/live_youtube_protocol.md`
 - `docs/next_codex_experiments.md`
 - `docs/limitations.md`

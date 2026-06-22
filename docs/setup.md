@@ -21,13 +21,18 @@ controls.
 
 ## Codex fixture runs
 
-Start the local fixture with:
+For local development, start the fixture with:
 
 ```bash
 PYTHONPATH=src python3 -m tubebench.cli serve-fixture --port 8765
 ```
 
 Then follow `docs/codex_evaluation_protocol.md`.
+
+For an in-app browser or other environment that cannot reach loopback, use the
+provider-neutral OCI deployment in `docs/hosted_fixture.md`. Do not run a
+Codex attempt until its HTTPS CLI preflight and browser-visible
+`?preflight=1` check both pass.
 
 ## Live YouTube runs
 

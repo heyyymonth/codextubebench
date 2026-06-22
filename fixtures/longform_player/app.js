@@ -2,6 +2,7 @@ const params = new URLSearchParams(window.location.search);
 const taskId = params.get("task") || "TCE-002";
 const mode = params.get("mode") || undefined;
 const agent = params.get("agent") || "manual-browser-agent";
+const preflightOnly = params.get("preflight") === "1";
 
 let sessionId = null;
 let currentView = null;
@@ -197,6 +198,49 @@ function render(view) {
 }
 
 async function start() {
+  if (preflightOnly) {
+    for (const section of document.querySelectorAll("[data-session-only]")) {
+      section.hidden = true;
+    }
+    const panel = document.querySelector("#preflight-panel");
+    panel.hidden = false;
+    document.querySelector("#session-meta").textContent =
+      "Preflight only — no benchmark session";
+    try {
+      const [health, catalog] = await Promise.all([
+        request("/health"),
+        request("/api/catalog"),
+      ]);
+      const task = catalog.tasks.find((row) => row.id === taskId);
+      if (!task) {
+        throw new Error(`Task ${taskId} is not exposed by this deployment.`);
+      }
+      if (mode && !task.supported_modes.includes(mode)) {
+        throw new Error(`Task ${taskId} does not support ${mode}.`);
+      }
+      document.querySelector("#preflight-title").textContent =
+        "Fixture preflight ready";
+      document.querySelector("#preflight-detail").textContent =
+        "Page assets and sanitized deployment metadata loaded. No benchmark session was created.";
+      document.querySelector("#preflight-metadata").textContent = JSON.stringify({
+        suite: health.suite,
+        revision: health.benchmark_git_revision,
+        fixture_version: health.fixture_version,
+        deployment_id: health.deployment_id,
+        catalog_digest: health.catalog_digest,
+        task: task.id,
+        task_revision: task.revision,
+        mode: mode || "default",
+      }, null, 2);
+      setStatus("Fixture preflight ready");
+    } catch (error) {
+      document.querySelector("#preflight-title").textContent =
+        "Fixture preflight failed";
+      document.querySelector("#preflight-detail").textContent = error.message;
+      setStatus(error.message, true);
+    }
+    return;
+  }
   try {
     const created = await request("/api/sessions", {
       method: "POST",

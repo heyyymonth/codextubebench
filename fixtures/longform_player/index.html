@@ -16,24 +16,33 @@
       <div id="session-meta" class="session-meta">Starting session…</div>
     </header>
     <main>
-      <section class="task-panel">
+      <section id="preflight-panel" class="task-panel preflight-panel" hidden>
+        <p class="pill">Preflight only</p>
+        <h2 id="preflight-title">Checking fixture assets…</h2>
+        <p id="preflight-detail">
+          This mode validates the hosted page without creating a benchmark
+          session.
+        </p>
+        <pre id="preflight-metadata"></pre>
+      </section>
+      <section class="task-panel" data-session-only>
         <p id="task-mode" class="pill"></p>
         <h2 id="task-title"></h2>
         <p id="task-instruction"></p>
       </section>
-      <section>
+      <section data-session-only>
         <h2>Media instances</h2>
         <div id="players" class="players"></div>
       </section>
-      <section id="evidence-section" hidden>
+      <section id="evidence-section" data-session-only hidden>
         <h2>Visible evidence</h2>
         <div id="evidence" class="evidence"></div>
       </section>
-      <section id="audit-section" hidden>
+      <section id="audit-section" data-session-only hidden>
         <h2>Audit log</h2>
         <pre id="audit-log"></pre>
       </section>
-      <section class="submission">
+      <section class="submission" data-session-only>
         <h2>Finish task</h2>
         <label for="answer">Final answer</label>
         <textarea id="answer" rows="3" placeholder="Leave blank for state-only tasks"></textarea>

@@ -73,6 +73,18 @@ section {
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
 }
 
+.preflight-panel {
+  border-color: #4dbe91;
+}
+
+.preflight-panel pre {
+  overflow-x: auto;
+  padding: 1rem;
+  border-radius: 10px;
+  background: #0b2019;
+  color: #c9ffe9;
+}
+
 .pill {
   display: inline-block;
   margin-bottom: 0.8rem;

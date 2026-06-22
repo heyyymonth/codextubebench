@@ -19,7 +19,9 @@ make test validate
 Record the Git revision and dirty state. Dirty runs are valid development
 traces but must not be promoted as release results.
 
-## 2. Start the fixture
+## 2. Select and preflight the fixture surface
+
+For a browser that can reach loopback, start the local fixture:
 
 ```bash
 PYTHONPATH=src python3 -m tubebench.cli serve-fixture \
@@ -35,6 +37,21 @@ The first output line contains:
 
 Keep the oracle token outside the agent prompt and browser page. It is evaluator
 authority.
+
+For a browser that cannot reach loopback, follow `docs/hosted_fixture.md`.
+Hosted execution requires this sequence:
+
+1. deploy one ephemeral fixture replica behind an approved HTTPS origin;
+2. run `tubebench preflight-fixture`;
+3. open `?preflight=1&task=TCE-002&mode=instrumented_browser` in the actual
+   in-app browser and verify `Fixture preflight ready`;
+4. run exactly one TCE-002 instrumented-browser smoke attempt;
+5. export and re-score its private trace;
+6. review that trace before planning or starting the 60-attempt campaign.
+
+If no approved HTTPS URL and evaluator secret exist, stop after documentation
+and deployment preparation. Do not create a session, smoke trace, or aggregate.
+Runtime access failures are infrastructure blockers, never Codex failures.
 
 ## 3. Open one task
 
@@ -120,7 +137,7 @@ Confirm that the command's result agrees with:
 
 ## 7. Interpretation
 
-A single manual Codex trace establishes only that the protocol can capture and
+A single manual or hosted smoke trace establishes only that the protocol can capture and
 score a real Codex-controlled interaction. It is not a benchmark score.
 Population-level claims require a clean pinned revision, repeated runs, fixed
 mode and prompt, task-complete coverage, environment metadata, and aggregate

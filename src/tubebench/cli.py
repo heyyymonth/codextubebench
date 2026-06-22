@@ -20,6 +20,7 @@ from .live_youtube import (
 )
 from .io import read_json
 from .longform_catalog import load_longform_catalog, validate_longform_catalog
+from .preflight import preflight_fixture
 from .runner import run_suite, summarize_rows
 
 
@@ -101,6 +102,32 @@ def build_parser() -> argparse.ArgumentParser:
     fixture.add_argument("--port", type=int, default=8765)
     fixture.add_argument("--catalog", type=Path)
     fixture.add_argument("--oracle-token")
+    fixture.add_argument("--hosted", action="store_true")
+    fixture.add_argument(
+        "--allow-http-loopback-test",
+        action="store_true",
+        help=argparse.SUPPRESS,
+    )
+
+    preflight = subparsers.add_parser(
+        "preflight-fixture",
+        help="verify a hosted deterministic fixture before browser execution",
+    )
+    preflight.add_argument("--url", required=True)
+    preflight.add_argument("--mode", required=True)
+    preflight.add_argument("--task", required=True)
+    preflight.add_argument("--output-dir", type=Path, required=True)
+    preflight.add_argument(
+        "--oracle-token-env",
+        default="CODEXTUBEBENCH_ORACLE_TOKEN",
+    )
+    preflight.add_argument("--expected-revision")
+    preflight.add_argument("--timeout", type=float, default=10.0)
+    preflight.add_argument(
+        "--allow-http-loopback-test",
+        action="store_true",
+        help=argparse.SUPPRESS,
+    )
     return parser
 
 
@@ -186,8 +213,23 @@ def main() -> int:
             port=args.port,
             catalog_path=args.catalog,
             oracle_token=args.oracle_token,
+            hosted=args.hosted,
+            allow_http_loopback_test=args.allow_http_loopback_test,
         )
         return 0
+    if args.command == "preflight-fixture":
+        report, passed = preflight_fixture(
+            url=args.url,
+            mode=args.mode,
+            task_id=args.task,
+            output_dir=args.output_dir,
+            oracle_token_env=args.oracle_token_env,
+            expected_revision=args.expected_revision,
+            allow_http_loopback_test=args.allow_http_loopback_test,
+            timeout=args.timeout,
+        )
+        print(json.dumps(report, indent=2, sort_keys=True))
+        return 0 if passed else 1
     if args.command == "summarize":
         print(json.dumps(summarize_rows(read_jsonl(args.results)), indent=2, sort_keys=True))
         return 0

@@ -273,6 +273,36 @@ def validate_executable_trace(trace: dict[str, Any]) -> list[str]:
         errors.append("trace.metrics must be an object")
     if not isinstance(trace.get("side_effects"), dict):
         errors.append("trace.side_effects must be an object")
+    execution_surface = trace.get("execution_surface")
+    if execution_surface is not None and not isinstance(execution_surface, dict):
+        errors.append("trace.execution_surface must be an object when present")
+    elif isinstance(execution_surface, dict):
+        required_surface_fields = {
+            "type",
+            "public_url",
+            "fixture_version",
+            "deployment_id",
+        }
+        if set(execution_surface) != required_surface_fields:
+            errors.append(
+                "trace.execution_surface must contain only type, public_url, "
+                "fixture_version, and deployment_id"
+            )
+        if execution_surface.get("type") not in {
+            "local",
+            "hosted_https",
+            "provider_runner",
+            "manual",
+        }:
+            errors.append("trace.execution_surface.type is invalid")
+        for field in ("public_url", "fixture_version", "deployment_id"):
+            if (
+                not isinstance(execution_surface.get(field), str)
+                or not execution_surface[field]
+            ):
+                errors.append(
+                    f"trace.execution_surface.{field} must be a non-empty string"
+                )
     return errors
 
 
@@ -711,6 +741,9 @@ class FixtureSession:
         agent: str,
         *,
         run_id: str | None = None,
+        benchmark_revision: str | None = None,
+        benchmark_dirty: bool | None = None,
+        execution_surface: dict[str, Any] | None = None,
     ) -> None:
         if mode not in task["supported_modes"]:
             raise ValueError(f"{task['id']} does not support mode {mode}")
@@ -718,6 +751,9 @@ class FixtureSession:
         self.mode = mode
         self.agent = agent
         self.run_id = run_id or str(uuid.uuid4())
+        self.benchmark_revision = benchmark_revision
+        self.benchmark_dirty = benchmark_dirty
+        self.execution_surface = deepcopy(execution_surface)
         self.started_at = utc_now()
         self.state = deepcopy(task["initial_state"])
         self.actions: list[dict[str, Any]] = []
@@ -733,7 +769,15 @@ class FixtureSession:
         self.errors: list[str] = []
 
     def reset(self) -> None:
-        self.__init__(self.task, self.mode, self.agent, run_id=self.run_id)
+        self.__init__(
+            self.task,
+            self.mode,
+            self.agent,
+            run_id=self.run_id,
+            benchmark_revision=self.benchmark_revision,
+            benchmark_dirty=self.benchmark_dirty,
+            execution_surface=self.execution_surface,
+        )
 
     def view(self) -> dict[str, Any]:
         channel = (
@@ -814,7 +858,11 @@ class FixtureSession:
                 self.verifications.append(verification)
 
     def trace(self) -> dict[str, Any]:
-        revision, dirty = benchmark_provenance()
+        revision, dirty = (
+            (self.benchmark_revision, self.benchmark_dirty)
+            if self.benchmark_revision is not None
+            else benchmark_provenance()
+        )
         raw = {
             "schema_version": TRACE_SCHEMA_VERSION,
             "run_id": self.run_id,
@@ -842,6 +890,8 @@ class FixtureSession:
             "passed": False,
             "errors": deepcopy(self.errors),
         }
+        if self.execution_surface is not None:
+            raw["execution_surface"] = deepcopy(self.execution_surface)
         evaluated, _ = evaluate_executable_trace(self.task, raw)
         return evaluated
 
