@@ -125,8 +125,9 @@ function submitTrace() {
   document.querySelector("#submit-answer").disabled = true;
   document.querySelector("#final-state-verification").disabled = true;
   document.querySelector("#download-trace").disabled = false;
+  document.querySelector("#copy-trace").disabled = false;
   renderPlayers();
-  setStatus("Submitted without scoring. Download the private trace for evaluator review.");
+  setStatus("Submitted without scoring. Export the private trace for evaluator review.");
 }
 
 function downloadTrace() {
@@ -142,6 +143,18 @@ function downloadTrace() {
   link.download = `${trace.run_id}-trace.json`;
   link.click();
   URL.revokeObjectURL(link.href);
+}
+
+async function copyTrace() {
+  if (!submitted) {
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(`${JSON.stringify(trace, null, 2)}\n`);
+    setStatus("Private trace copied for evaluator review.");
+  } catch (error) {
+    setStatus("Could not copy the private trace. Use the download control instead.", true);
+  }
 }
 
 async function start() {
@@ -189,5 +202,6 @@ async function start() {
 
 document.querySelector("#submit-answer").addEventListener("click", submitTrace);
 document.querySelector("#download-trace").addEventListener("click", downloadTrace);
+document.querySelector("#copy-trace").addEventListener("click", copyTrace);
 
 start();

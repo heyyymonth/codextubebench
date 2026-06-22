@@ -54,6 +54,18 @@ class StaticFixtureTests(unittest.TestCase):
         ):
             self.assertNotIn(forbidden, text)
 
+    def test_private_trace_handoff_is_post_submission_and_local_only(self) -> None:
+        html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
+        script = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
+        self.assertIn('id="copy-trace" disabled', html)
+        self.assertIn("navigator.clipboard.writeText", script)
+        self.assertIn(
+            'document.querySelector("#copy-trace").disabled = false;',
+            script,
+        )
+        self.assertNotIn("navigator.sendBeacon", script)
+        self.assertNotIn("XMLHttpRequest", script)
+
     def test_static_trace_template_validates_and_rescores(self) -> None:
         trace = json.loads(
             (STATIC_DIR / "trace-template.json").read_text(encoding="utf-8")

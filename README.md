@@ -105,6 +105,8 @@ timestamp localization, transcript/channel use, and verification.
 See `docs/deterministic_fixture.md`.
 For the gated HTTPS execution surface, see `docs/hosted_fixture.md`.
 For the limited static HTTPS fallback, see `docs/github_pages_fixture.md`.
+The published TCE-002-only fallback is
+`https://heyyymonth.github.io/codextubebench/`.
 
 ### Live YouTube
 
