@@ -14,15 +14,17 @@ It is not equivalent to the dynamic fixture:
 
 The initial `task-cockpit` is deliberately no-scroll-first. At supported
 browser sizes it keeps the instruction, all three playback states, the single
-task action, verification, submission, status, copy, and download controls in
-the initial viewport. Full media metadata remains available in the collapsed
-read-only details section below it.
+task action, verification, and status in the initial viewport. After the
+playing player is paused, verification becomes available. Selecting it
+idempotently submits the blank answer and switches the cockpit to a completed
+layout containing the result summary, visible trace textarea, and transfer
+controls without requiring page scrolling.
 
 Keyboard operation is available when focus is not already inside a control:
 
 - `P` or Space pauses the sole playing player;
-- `V` toggles final-state verification;
-- `C` copies the trace after submission;
+- `V` selects final-state verification and finalizes the trace;
+- `C` attempts to copy the visible trace after completion;
 - Tab and Enter retain their native meanings.
 
 Keep `CODEXTUBEBENCH_PUBLIC_BASE_URL` reserved for the dynamic fixture contract
@@ -41,18 +43,25 @@ python3 -m http.server 8088 --directory docs/static-fixture
 ```
 
 Open `http://127.0.0.1:8088/`. The page records only its own deterministic UI
-actions. After submitting the blank state-only answer, download or copy the
-JSON trace and move it into the lab's ignored run tree before evaluation.
+actions. After pausing player B and selecting verification, the complete trace
+appears in a read-only textarea. This visible text is the primary transfer
+path; clipboard and download remain optional conveniences.
 
-Re-score privately:
+Manual ingestion:
 
 ```bash
-PYTHONPATH=src python3 -m tubebench.cli score-executable-trace \
-  ../youtube-benchmark-lab/runs/deterministic_codex/static/<run-id>/trace.json \
-  --output ../youtube-benchmark-lab/runs/deterministic_codex/static/<run-id>/evaluated-trace.json
+RUN_DIR="../youtube-benchmark-lab/runs/static_fixture/codex/<run-id>"
+mkdir -p "$RUN_DIR"
+$EDITOR "$RUN_DIR/trace.json"
+
+PYTHONPATH=src python3 -m tubebench.cli score-static-trace \
+  --trace "$RUN_DIR/trace.json" \
+  --output "$RUN_DIR/result.json"
 ```
 
-Do not upload copied or downloaded traces, screenshots, or evaluated output to
+If clipboard or downloads are blocked, choose **Select trace text**, copy the
+selected textarea contents with the browser's normal text operation, and paste
+them into `trace.json`. Do not upload traces, screenshots, or result files to
 Pages.
 
 ## GitHub Pages deployment

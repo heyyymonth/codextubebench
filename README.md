@@ -87,9 +87,13 @@ The smoke command runs scripted and no-op controls, not Codex.
 
    ```bash
    PYTHONPATH=src python3 -m tubebench.cli score-executable-trace \
-     ../youtube-benchmark-lab/runs/codex/<run-id>/trace.json \
-     --output ../youtube-benchmark-lab/runs/codex/<run-id>/evaluated-trace.json
+     ../youtube-benchmark-lab/runs/deterministic_codex/<task-id>/<run-id>/trace.json \
+     --output ../youtube-benchmark-lab/runs/deterministic_codex/<task-id>/<run-id>/evaluated-trace.json
    ```
+
+For the TCE-002-only GitHub Pages fallback and its visible manual trace
+handoff, use `score-static-trace` as documented in
+`docs/github_pages_fixture.md`.
 
 One run is protocol validation. Repeated evaluation is specified in
 `docs/next_codex_experiments.md`.

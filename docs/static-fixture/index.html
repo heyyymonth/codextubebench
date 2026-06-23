@@ -6,7 +6,7 @@
     <meta name="codextubebench-static-fixture" content="TCE-002">
     <title>CodexTubeBench Static Fixture</title>
     <link rel="icon" href="data:,">
-    <link rel="stylesheet" href="./styles.css?fixture=v0.2">
+    <link rel="stylesheet" href="./styles.css?fixture=v0.3">
   </head>
   <body>
     <header>
@@ -62,32 +62,19 @@
             data-testid="final-state-verification"
             type="checkbox"
             aria-keyshortcuts="V"
+            disabled
           >
           Final playback state verified
         </label>
 
-        <div class="submission-actions">
+        <div class="submission-actions task-phase-control">
           <button
             id="submit-answer"
             class="primary"
             data-testid="submit-answer"
-          >
-            Submit blank answer
-          </button>
-          <button
-            id="copy-trace"
-            data-testid="copy-trace"
-            aria-keyshortcuts="C"
             disabled
           >
-            Copy private trace
-          </button>
-          <button
-            id="download-trace"
-            data-testid="download-trace"
-            disabled
-          >
-            Download trace JSON
+            Verify to submit blank answer
           </button>
         </div>
 
@@ -97,7 +84,75 @@
           data-testid="status"
           role="status"
         ></p>
-        <p class="shortcut-help">Shortcuts: P/Space pause · V verify · C copy after submit</p>
+        <p class="shortcut-help task-phase-control">Shortcuts: P/Space pause · V verify</p>
+
+        <section
+          id="trace-handoff"
+          class="trace-handoff"
+          data-testid="trace-handoff"
+          aria-labelledby="trace-handoff-title"
+          hidden
+        >
+          <div class="handoff-heading">
+            <div>
+              <p class="eyebrow">Manual trace handoff</p>
+              <h2 id="trace-handoff-title">Trace JSON</h2>
+            </div>
+            <span class="ready-pill" data-testid="trace-ready">Ready</span>
+          </div>
+
+          <div
+            id="result-summary"
+            class="result-summary"
+            data-testid="result-summary"
+            aria-label="Result summary"
+          >
+            <div><span>Task</span><strong id="summary-task-id" data-testid="summary-task-id"></strong></div>
+            <div><span>Fixture revision</span><strong id="summary-fixture-revision" data-testid="summary-fixture-revision"></strong></div>
+            <div><span>Initial states</span><strong id="summary-initial-states" data-testid="summary-initial-states"></strong></div>
+            <div><span>Final states</span><strong id="summary-final-states" data-testid="summary-final-states"></strong></div>
+            <div><span>Action</span><strong id="summary-action" data-testid="summary-action"></strong></div>
+            <div><span>Verified</span><strong id="summary-verification" data-testid="summary-verification"></strong></div>
+            <div><span>Timestamp</span><strong id="summary-timestamp" data-testid="summary-timestamp"></strong></div>
+            <div><span>Trace ID</span><strong id="summary-trace-id" data-testid="summary-trace-id"></strong></div>
+          </div>
+
+          <label class="trace-label" for="trace-json">Complete private trace</label>
+          <textarea
+            id="trace-json"
+            data-testid="trace-json"
+            readonly
+            spellcheck="false"
+            aria-describedby="trace-instruction"
+          ></textarea>
+
+          <div class="trace-actions">
+            <button
+              id="select-trace"
+              class="primary"
+              data-testid="select-trace"
+            >
+              Select trace text
+            </button>
+            <button
+              id="copy-trace"
+              data-testid="copy-trace"
+              aria-keyshortcuts="C"
+            >
+              Copy trace
+            </button>
+            <button
+              id="download-trace"
+              data-testid="download-trace"
+            >
+              Download trace
+            </button>
+          </div>
+
+          <p id="trace-instruction" class="trace-instruction" data-testid="trace-instruction">
+            If copy/download is blocked, manually select the Trace JSON text and paste it into the lab trace file.
+          </p>
+        </section>
       </section>
 
       <details class="details-panel">
@@ -111,6 +166,7 @@
         CodexTubeBench CLI.
       </aside>
     </main>
-    <script src="./app.js?fixture=v0.2"></script>
+    <script src="./trace-handoff.js?fixture=v0.3"></script>
+    <script src="./app.js?fixture=v0.3"></script>
   </body>
 </html>

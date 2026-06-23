@@ -10,6 +10,7 @@ from copy import deepcopy
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 from . import __version__
 from .io import read_json, write_json
@@ -24,6 +25,7 @@ from .temporal_metrics import (
 TASK_SCHEMA_VERSION = "tubecontrol-executable-task.v0.1"
 TRACE_SCHEMA_VERSION = "tubecontrol-executable-trace.v0.1"
 RESULT_SCHEMA_VERSION = "tubecontrol-executable-result.v0.1"
+STATIC_RESULT_SCHEMA_VERSION = "codextubebench-static-trace-result.v0.1"
 SUITE_ID = "TubeControl-Executable-v0"
 
 REQUIRED_TASK_FIELDS = {
@@ -1008,3 +1010,125 @@ def score_trace_file(
     if output_path:
         write_json(output_path, evaluated)
     return result
+
+
+def _static_trace_validation_errors(trace: dict[str, Any]) -> list[str]:
+    errors = validate_executable_trace(trace)
+    if trace.get("task_id") != "TCE-002":
+        errors.append("static trace task_id must be TCE-002")
+    if trace.get("mode") != "gui_native":
+        errors.append("static trace mode must be gui_native")
+    execution_surface = trace.get("execution_surface")
+    if not isinstance(execution_surface, dict):
+        return errors
+    if execution_surface.get("type") != "manual":
+        errors.append("static trace execution_surface.type must be manual")
+    fixture_version = execution_surface.get("fixture_version")
+    if not isinstance(fixture_version, str) or not fixture_version.startswith(
+        "codextubebench-static-fixture.v"
+    ):
+        errors.append("static trace fixture_version is invalid")
+    public_url = execution_surface.get("public_url")
+    if isinstance(public_url, str):
+        parsed = urlsplit(public_url)
+        if (
+            parsed.scheme not in {"http", "https"}
+            or not parsed.netloc
+            or parsed.username
+            or parsed.password
+            or parsed.query
+            or parsed.fragment
+        ):
+            errors.append(
+                "static trace public_url must omit credentials, query, and fragment"
+            )
+    return errors
+
+
+def _empty_static_result(errors: list[str]) -> dict[str, Any]:
+    return {
+        "schema_version": STATIC_RESULT_SCHEMA_VERSION,
+        "trace_id": None,
+        "task_id": None,
+        "fixture_revision": None,
+        "fixture_version": None,
+        "valid": False,
+        "passed": False,
+        "metrics": {},
+        "side_effects": {},
+        "errors": errors,
+        "failure_category": "trace_validation_failure",
+    }
+
+
+def score_static_trace_file(
+    trace_path: Path,
+    output_path: Path,
+    catalog_path: Path | None = None,
+) -> tuple[dict[str, Any], bool]:
+    try:
+        trace = read_json(trace_path)
+    except (OSError, json.JSONDecodeError) as error:
+        result = _empty_static_result([f"could not read static trace: {error}"])
+        write_json(output_path, result)
+        return result, False
+    if not isinstance(trace, dict):
+        result = _empty_static_result(["static trace root must be an object"])
+        write_json(output_path, result)
+        return result, False
+
+    execution_surface = trace.get("execution_surface")
+    fixture_version = (
+        execution_surface.get("fixture_version")
+        if isinstance(execution_surface, dict)
+        else None
+    )
+    result = _empty_static_result([])
+    result.update(
+        {
+            "trace_id": trace.get("run_id"),
+            "task_id": trace.get("task_id"),
+            "fixture_revision": trace.get("benchmark_git_revision"),
+            "fixture_version": fixture_version,
+        }
+    )
+    validation_errors = _static_trace_validation_errors(trace)
+    if validation_errors:
+        result["errors"] = validation_errors
+        write_json(output_path, result)
+        return result, False
+
+    tasks = load_executable_catalog(catalog_path)
+    task = next((row for row in tasks if row["id"] == "TCE-002"), None)
+    if task is None:
+        result["errors"] = ["TCE-002 is missing from the executable catalog"]
+        write_json(output_path, result)
+        return result, False
+
+    _, executable_result = evaluate_executable_trace(task, trace)
+    metrics = executable_result["metrics"]
+    side_effects = executable_result["side_effects"]
+    errors = executable_result["errors"]
+    failure_category: str | None = None
+    if errors:
+        failure_category = "trace_replay_failure"
+    elif side_effects["incident_count"]:
+        failure_category = "side_effect_failure"
+    elif metrics["verification_score"] < 1.0:
+        failure_category = "verification_failure"
+    elif not executable_result["passed"]:
+        failure_category = "task_state_failure"
+
+    passed = executable_result["passed"] and failure_category is None
+    result.update(
+        {
+            "valid": True,
+            "passed": passed,
+            "metrics": metrics,
+            "side_effects": side_effects,
+            "errors": errors,
+            "failure_category": failure_category,
+        }
+    )
+    write_json(output_path, result)
+    return result, True

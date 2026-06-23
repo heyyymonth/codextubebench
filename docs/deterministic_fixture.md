@@ -54,9 +54,12 @@ Follow `docs/codex_evaluation_protocol.md` for a real Codex attempt.
 
 ```bash
 PYTHONPATH=src python3 -m tubebench.cli score-executable-trace \
-  ../youtube-benchmark-lab/runs/codex/<run-id>/trace.json \
-  --output ../youtube-benchmark-lab/runs/codex/<run-id>/evaluated-trace.json
+  ../youtube-benchmark-lab/runs/deterministic_codex/<task-id>/<run-id>/trace.json \
+  --output ../youtube-benchmark-lab/runs/deterministic_codex/<task-id>/<run-id>/evaluated-trace.json
 ```
+
+For the static TCE-002 GitHub Pages fallback, use the manual ingestion and
+`score-static-trace` procedure in `docs/github_pages_fixture.md`.
 
 ## Current scoring
 

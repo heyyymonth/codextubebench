@@ -8,6 +8,7 @@ from .catalog import load_catalog, validate_catalog
 from .executable import (
     load_executable_catalog,
     run_executable_suite,
+    score_static_trace_file,
     score_trace_file,
     validate_executable_catalog,
 )
@@ -93,6 +94,14 @@ def build_parser() -> argparse.ArgumentParser:
     score_trace.add_argument("trace", type=Path)
     score_trace.add_argument("--catalog", type=Path)
     score_trace.add_argument("--output", type=Path)
+
+    score_static_trace = subparsers.add_parser(
+        "score-static-trace",
+        help="validate and score one pasted static TCE-002 trace",
+    )
+    score_static_trace.add_argument("--trace", type=Path, required=True)
+    score_static_trace.add_argument("--output", type=Path, required=True)
+    score_static_trace.add_argument("--catalog", type=Path)
 
     fixture = subparsers.add_parser(
         "serve-fixture",
@@ -207,6 +216,14 @@ def main() -> int:
         )
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
+    if args.command == "score-static-trace":
+        result, valid = score_static_trace_file(
+            args.trace,
+            output_path=args.output,
+            catalog_path=args.catalog,
+        )
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0 if valid else 1
     if args.command == "serve-fixture":
         serve(
             host=args.host,

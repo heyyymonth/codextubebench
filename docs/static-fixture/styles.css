@@ -9,6 +9,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   background:
@@ -220,7 +224,7 @@ button:disabled {
 
 .submission-actions {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.4rem;
 }
 
@@ -243,6 +247,118 @@ button:disabled {
   margin: 0;
   color: #919ab0;
   font-size: 0.68rem;
+}
+
+.trace-handoff {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.handoff-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.handoff-heading p,
+.handoff-heading h2 {
+  margin-bottom: 0;
+}
+
+.ready-pill {
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  background: #0d5a42;
+  color: #b8ffe3;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.result-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.32rem;
+}
+
+.result-summary div {
+  min-width: 0;
+  padding: 0.36rem 0.45rem;
+  border-radius: 7px;
+  background: #171b24;
+}
+
+.result-summary span,
+.trace-label {
+  display: block;
+  color: #919ab0;
+  font-size: 0.61rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.result-summary strong {
+  display: block;
+  margin-top: 0.12rem;
+  overflow: hidden;
+  color: #e5e9f5;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trace-label {
+  margin-top: 0.05rem;
+}
+
+#trace-json {
+  width: 100%;
+  min-height: 155px;
+  resize: none;
+  padding: 0.5rem;
+  border: 1px solid #3a4151;
+  border-radius: 7px;
+  background: #090b10;
+  color: #dfe5f2;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.66rem;
+  line-height: 1.25;
+}
+
+#trace-json:focus {
+  border-color: #8c7dff;
+  outline: 2px solid rgba(140, 125, 255, 0.28);
+}
+
+.trace-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.trace-instruction {
+  margin: 0;
+  color: #ffe9a6;
+  font-size: 0.7rem;
+  line-height: 1.25;
+}
+
+body[data-phase="completed"] .task-heading,
+body[data-phase="completed"] #task-instruction,
+body[data-phase="completed"] #player-state-list,
+body[data-phase="completed"] #pause-playing,
+body[data-phase="completed"] .verification,
+body[data-phase="completed"] .task-phase-control,
+body[data-phase="completed"] .details-panel,
+body[data-phase="completed"] .notice {
+  display: none;
+}
+
+body[data-phase="completed"] .task-cockpit {
+  border-color: #256b55;
 }
 
 .details-panel {
@@ -374,6 +490,33 @@ dd {
     gap: 0.3rem;
   }
 
+  .result-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.25rem;
+  }
+
+  .result-summary div {
+    padding: 0.28rem 0.35rem;
+  }
+
+  .result-summary strong {
+    font-size: 0.63rem;
+  }
+
+  #trace-json {
+    min-height: 128px;
+    padding: 0.4rem;
+    font-size: 0.59rem;
+  }
+
+  .trace-actions {
+    gap: 0.3rem;
+  }
+
+  .trace-instruction {
+    font-size: 0.64rem;
+  }
+
   button {
     min-height: 34px;
     padding: 0.35rem 0.3rem;
@@ -410,5 +553,22 @@ dd {
 
   .verification {
     min-height: 25px;
+  }
+
+  body[data-phase="completed"] main {
+    margin-top: 0.2rem;
+  }
+
+  body[data-phase="completed"] .task-cockpit {
+    gap: 0.26rem;
+    padding: 0.38rem;
+  }
+
+  body[data-phase="completed"] .trace-handoff {
+    gap: 0.26rem;
+  }
+
+  body[data-phase="completed"] #trace-json {
+    min-height: 122px;
   }
 }

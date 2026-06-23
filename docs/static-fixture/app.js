@@ -1,8 +1,17 @@
-const STATIC_FIXTURE_VERSION = "codextubebench-static-fixture.v0.2";
+const STATIC_FIXTURE_VERSION = "codextubebench-static-fixture.v0.3";
+const {
+  attemptOptionalTransfer,
+  buildSummary,
+  finalizeTrace,
+  sanitizePublicUrl,
+  selectTraceText,
+  serializeTrace,
+} = CodexTubeBenchStaticTrace;
 
 let fixture = null;
 let deployment = null;
 let trace = null;
+let initialState = null;
 let state = null;
 let submitted = false;
 
@@ -66,7 +75,9 @@ function pausePlayer(playerId) {
   recordRender({post_action_render: true});
   renderCockpitStates();
   renderPlayerDetails();
-  setStatus(`Recorded pause for ${playerId}. Verify all three states.`);
+  const verification = document.querySelector("#final-state-verification");
+  verification.disabled = false;
+  setStatus(`Recorded pause for ${playerId}. Verify all three states to finalize.`);
 }
 
 function pausePlayingPlayer() {
@@ -155,49 +166,96 @@ function renderPlayerDetails() {
   }
 }
 
-function submitTrace() {
+function renderSummary(summary) {
+  const fields = {
+    "#summary-task-id": summary.task_id,
+    "#summary-fixture-revision": summary.fixture_revision,
+    "#summary-initial-states": summary.initial_states,
+    "#summary-final-states": summary.final_states,
+    "#summary-action": summary.action_performed,
+    "#summary-verification": summary.verification_selected,
+    "#summary-timestamp": summary.timestamp,
+    "#summary-trace-id": summary.trace_id,
+  };
+  for (const [selector, value] of Object.entries(fields)) {
+    const element = document.querySelector(selector);
+    element.textContent = value;
+    element.title = value;
+  }
+}
+
+function finalizeSubmission() {
   if (submitted) {
     return;
   }
   submitted = true;
-  trace.ended_at = now();
-  trace.verifications = document.querySelector("#final-state-verification").checked
-    ? ["final_playback_state"]
-    : [];
-  trace.final_answer = "";
+  trace = finalizeTrace(trace, initialState, state, now());
+  const traceText = serializeTrace(trace);
+  const textarea = document.querySelector("#trace-json");
+  textarea.value = traceText;
+  renderSummary(buildSummary(trace, initialState, state));
+
+  document.body.dataset.phase = "completed";
+  document.querySelector("#trace-handoff").hidden = false;
+  document.querySelector("#submit-answer").textContent = "Blank answer submitted";
   document.querySelector("#submit-answer").disabled = true;
   document.querySelector("#final-state-verification").disabled = true;
-  document.querySelector("#download-trace").disabled = false;
-  document.querySelector("#copy-trace").disabled = false;
   renderCockpitStates();
-  renderPlayerDetails();
-  setStatus("Submitted without scoring. Copy or download the private trace.");
+  setStatus("Trace ready. Select the visible text for the primary manual handoff.");
 }
 
-function downloadTrace() {
+function handleVerificationChange(event) {
+  if (event.currentTarget.checked) {
+    finalizeSubmission();
+  }
+}
+
+function selectTrace() {
   if (!submitted) {
     return;
   }
-  const blob = new Blob(
-    [`${JSON.stringify(trace, null, 2)}\n`],
-    {type: "application/json"},
-  );
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = `${trace.run_id}-trace.json`;
-  link.click();
-  URL.revokeObjectURL(link.href);
+  selectTraceText(document.querySelector("#trace-json"));
+  setStatus("Complete trace text selected. Paste it into the private lab trace file.");
 }
 
 async function copyTrace() {
   if (!submitted) {
     return;
   }
-  try {
-    await navigator.clipboard.writeText(`${JSON.stringify(trace, null, 2)}\n`);
-    setStatus("Private trace copied for evaluator review.");
-  } catch (error) {
-    setStatus("Could not copy the private trace. Use download instead.", true);
+  const text = document.querySelector("#trace-json").value;
+  const result = await attemptOptionalTransfer(
+    () => navigator.clipboard.writeText(text),
+  );
+  if (result.ok) {
+    setStatus("Private trace copied. The visible trace remains available.");
+  } else {
+    setStatus(
+      "Clipboard copy was blocked. Use Select trace text for manual handoff.",
+      true,
+    );
+  }
+}
+
+async function downloadTrace() {
+  if (!submitted) {
+    return;
+  }
+  const text = document.querySelector("#trace-json").value;
+  const result = await attemptOptionalTransfer(async () => {
+    const blob = new Blob([text], {type: "application/json"});
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${trace.run_id}-trace.json`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  });
+  if (result.ok) {
+    setStatus("Download requested. The visible trace remains available.");
+  } else {
+    setStatus(
+      "Download was blocked. Use Select trace text for manual handoff.",
+      true,
+    );
   }
 }
 
@@ -222,14 +280,10 @@ function handleShortcut(event) {
   } else if (key === "v") {
     const verification = document.querySelector("#final-state-verification");
     if (!verification.disabled) {
-      verification.checked = !verification.checked;
-      setStatus(
-        verification.checked
-          ? "Final playback state marked verified."
-          : "Final playback state verification cleared.",
-      );
+      verification.checked = true;
+      finalizeSubmission();
     }
-  } else if (key === "c" && !document.querySelector("#copy-trace").disabled) {
+  } else if (key === "c" && submitted) {
     copyTrace();
   }
 }
@@ -237,9 +291,9 @@ function handleShortcut(event) {
 async function start() {
   try {
     const [taskResponse, templateResponse, deploymentResponse] = await Promise.all([
-      fetch("./task.json?fixture=v0.2"),
-      fetch("./trace-template.json?fixture=v0.2"),
-      fetch("./deployment-metadata.json?fixture=v0.2"),
+      fetch("./task.json?fixture=v0.3"),
+      fetch("./trace-template.json?fixture=v0.3"),
+      fetch("./deployment-metadata.json?fixture=v0.3"),
     ]);
     if (!taskResponse.ok || !templateResponse.ok || !deploymentResponse.ok) {
       throw new Error("Static fixture assets are incomplete.");
@@ -247,6 +301,7 @@ async function start() {
     fixture = await taskResponse.json();
     trace = await templateResponse.json();
     deployment = await deploymentResponse.json();
+    initialState = structuredClone(fixture);
     state = structuredClone(fixture);
 
     const startedAt = now();
@@ -257,11 +312,14 @@ async function start() {
     trace.benchmark_git_dirty = deployment.benchmark_git_dirty;
     trace.execution_surface = {
       type: "manual",
-      public_url: new URL("./", window.location.href).href,
+      public_url: sanitizePublicUrl(new URL("./", window.location.href).href),
       fixture_version: STATIC_FIXTURE_VERSION,
       deployment_id: deployment.deployment_id,
     };
-    recordRender({initial_render: true});
+    recordRender({
+      initial_render: true,
+      initial_playback_states: CodexTubeBenchStaticTrace.playbackStates(initialState),
+    });
 
     document.querySelector("#task-mode").textContent = fixture.task.mode;
     document.querySelector("#task-title").textContent =
@@ -279,7 +337,11 @@ async function start() {
 }
 
 document.querySelector("#pause-playing").addEventListener("click", pausePlayingPlayer);
-document.querySelector("#submit-answer").addEventListener("click", submitTrace);
+document.querySelector("#final-state-verification").addEventListener(
+  "change",
+  handleVerificationChange,
+);
+document.querySelector("#select-trace").addEventListener("click", selectTrace);
 document.querySelector("#download-trace").addEventListener("click", downloadTrace);
 document.querySelector("#copy-trace").addEventListener("click", copyTrace);
 document.addEventListener("keydown", handleShortcut);

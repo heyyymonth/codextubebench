@@ -106,7 +106,7 @@ the evaluated trace from a separate evaluator shell:
 curl -sS \
   -H "X-Oracle-Token: <token printed by the server>" \
   "http://127.0.0.1:8765/api/sessions/<session-id>/trace" \
-  > ../youtube-benchmark-lab/runs/codex/<run-id>/trace.json
+  > ../youtube-benchmark-lab/runs/deterministic_codex/<task-id>/<run-id>/trace.json
 ```
 
 The output must stay in the lab's ignored `runs/` tree until it is reviewed and
@@ -119,9 +119,13 @@ the file to verify reproducibility:
 
 ```bash
 PYTHONPATH=src python3 -m tubebench.cli score-executable-trace \
-  ../youtube-benchmark-lab/runs/codex/<run-id>/trace.json \
-  --output ../youtube-benchmark-lab/runs/codex/<run-id>/evaluated-trace.json
+  ../youtube-benchmark-lab/runs/deterministic_codex/<task-id>/<run-id>/trace.json \
+  --output ../youtube-benchmark-lab/runs/deterministic_codex/<task-id>/<run-id>/evaluated-trace.json
 ```
+
+The static Pages fallback has no evaluator endpoint. Its visible textarea must
+be ingested and scored with `score-static-trace`; follow
+`docs/github_pages_fixture.md`.
 
 Confirm that the command's result agrees with:
 
