@@ -1,4 +1,7 @@
 const STATIC_FIXTURE_VERSION = "codextubebench-static-fixture.v0.3";
+const STATIC_FIXTURE_ID = "codextubebench-static-tce-002";
+const STATIC_ASSET_REVISION = "v0.3-ready";
+const SCORER_CONTRACT_VERSION = "codextubebench-static-trace-result.v0.1";
 const {
   attemptOptionalTransfer,
   buildSummary,
@@ -14,6 +17,14 @@ let trace = null;
 let initialState = null;
 let state = null;
 let submitted = false;
+let controlsAttached = false;
+let assetsLoaded = {
+  task_json: false,
+  trace_template_json: false,
+  deployment_metadata_json: false,
+  app_js: true,
+  trace_handoff_js: true,
+};
 
 function now() {
   return new Date().toISOString();
@@ -39,6 +50,98 @@ function setStatus(message, error = false) {
   const status = document.querySelector("#status");
   status.textContent = message;
   status.className = error ? "status error" : "status success";
+}
+
+function traceHandoffReady() {
+  return Boolean(
+    typeof CodexTubeBenchStaticTrace !== "undefined"
+      && CodexTubeBenchStaticTrace
+      && typeof finalizeTrace === "function"
+      && typeof selectTraceText === "function"
+      && typeof serializeTrace === "function",
+  );
+}
+
+function cockpitControlsAttached() {
+  return controlsAttached && [
+    "#pause-playing",
+    "#final-state-verification",
+    "#select-trace",
+    "#download-trace",
+    "#copy-trace",
+  ].every((selector) => Boolean(document.querySelector(selector)));
+}
+
+function taskInitialStateRendered() {
+  if (!state?.players) {
+    return false;
+  }
+  return document.querySelectorAll("[data-testid^='player-state-player-']").length
+    === Object.keys(state.players).length;
+}
+
+function readinessChecks() {
+  return {
+    task_json_loaded: assetsLoaded.task_json,
+    trace_template_json_loaded: assetsLoaded.trace_template_json,
+    app_js_initialized: true,
+    cockpit_controls_attached: cockpitControlsAttached(),
+    trace_textarea_exists: Boolean(document.querySelector("#trace-json")),
+    static_trace_handoff_ready: traceHandoffReady(),
+    task_initial_state_rendered: taskInitialStateRendered(),
+  };
+}
+
+function publishReadiness({ready, initializedAt = null, error = null, checks = null}) {
+  const snapshot = {
+    fixture_id: STATIC_FIXTURE_ID,
+    fixture_version: STATIC_FIXTURE_VERSION,
+    deployed_revision: deployment?.benchmark_git_revision ?? null,
+    task_id: fixture?.task?.id ?? "TCE-002",
+    assets_loaded: {...assetsLoaded},
+    trace_handoff_ready: traceHandoffReady(),
+    scorer_contract_version: SCORER_CONTRACT_VERSION,
+    initialized_at: initializedAt,
+    ready,
+    checks: checks ?? readinessChecks(),
+    error,
+  };
+  window.CodexTubeBenchStaticReady = JSON.parse(JSON.stringify(snapshot));
+
+  const indicator = document.querySelector("#fixture-ready");
+  if (indicator) {
+    indicator.dataset.ready = ready ? "true" : "false";
+    indicator.dataset.fixtureId = snapshot.fixture_id;
+    indicator.dataset.fixtureVersion = snapshot.fixture_version;
+    indicator.dataset.deployedRevision = snapshot.deployed_revision ?? "";
+    indicator.dataset.taskId = snapshot.task_id;
+    indicator.dataset.assetsLoaded = Object.values(snapshot.assets_loaded).every(Boolean)
+      ? "true"
+      : "false";
+    indicator.dataset.traceHandoffReady = snapshot.trace_handoff_ready ? "true" : "false";
+    indicator.dataset.scorerContractVersion = snapshot.scorer_contract_version;
+    indicator.textContent = ready
+      ? `Readiness: ready · ${snapshot.task_id} · ${snapshot.deployed_revision}`
+      : `Readiness: not ready${error ? ` · ${error}` : ""}`;
+  }
+
+  const stateNode = document.querySelector("#fixture-readiness-state");
+  if (stateNode) {
+    stateNode.textContent = JSON.stringify(snapshot, null, 2);
+  }
+  return snapshot;
+}
+
+function markFixtureReady() {
+  const checks = readinessChecks();
+  const ready = Object.values(checks).every(Boolean);
+  publishReadiness({
+    ready,
+    initializedAt: ready ? now() : null,
+    error: ready ? null : "readiness checks incomplete",
+    checks,
+  });
+  return ready;
 }
 
 function recordRender(details) {
@@ -291,10 +394,16 @@ function handleShortcut(event) {
 async function start() {
   try {
     const [taskResponse, templateResponse, deploymentResponse] = await Promise.all([
-      fetch("./task.json?fixture=v0.3"),
-      fetch("./trace-template.json?fixture=v0.3"),
-      fetch("./deployment-metadata.json?fixture=v0.3"),
+      fetch(`./task.json?fixture=${STATIC_ASSET_REVISION}`),
+      fetch(`./trace-template.json?fixture=${STATIC_ASSET_REVISION}`),
+      fetch(`./deployment-metadata.json?fixture=${STATIC_ASSET_REVISION}`),
     ]);
+    assetsLoaded = {
+      ...assetsLoaded,
+      task_json: taskResponse.ok,
+      trace_template_json: templateResponse.ok,
+      deployment_metadata_json: deploymentResponse.ok,
+    };
     if (!taskResponse.ok || !templateResponse.ok || !deploymentResponse.ok) {
       throw new Error("Static fixture assets are incomplete.");
     }
@@ -330,20 +439,35 @@ async function start() {
       `${deployment.deployment_id} · ${deployment.benchmark_git_revision}`;
     renderCockpitStates();
     renderPlayerDetails();
-    setStatus("Static fixture ready. No task has been scored.");
+    if (markFixtureReady()) {
+      setStatus("Static fixture ready. No task has been scored.");
+    } else {
+      setStatus("Static fixture loaded but readiness checks are incomplete.", true);
+    }
   } catch (error) {
-    setStatus(error.message, true);
+    const message = error instanceof Error ? error.message : String(error);
+    publishReadiness({
+      ready: false,
+      error: message,
+      checks: readinessChecks(),
+    });
+    setStatus(message, true);
   }
 }
 
-document.querySelector("#pause-playing").addEventListener("click", pausePlayingPlayer);
-document.querySelector("#final-state-verification").addEventListener(
-  "change",
-  handleVerificationChange,
-);
-document.querySelector("#select-trace").addEventListener("click", selectTrace);
-document.querySelector("#download-trace").addEventListener("click", downloadTrace);
-document.querySelector("#copy-trace").addEventListener("click", copyTrace);
-document.addEventListener("keydown", handleShortcut);
+function attachControls() {
+  document.querySelector("#pause-playing").addEventListener("click", pausePlayingPlayer);
+  document.querySelector("#final-state-verification").addEventListener(
+    "change",
+    handleVerificationChange,
+  );
+  document.querySelector("#select-trace").addEventListener("click", selectTrace);
+  document.querySelector("#download-trace").addEventListener("click", downloadTrace);
+  document.querySelector("#copy-trace").addEventListener("click", copyTrace);
+  document.addEventListener("keydown", handleShortcut);
+  controlsAttached = true;
+}
 
+publishReadiness({ready: false, checks: readinessChecks()});
+attachControls();
 start();

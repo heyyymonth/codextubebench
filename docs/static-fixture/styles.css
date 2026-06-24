@@ -71,6 +71,34 @@ main {
   text-align: right;
 }
 
+.runtime-meta {
+  min-width: 0;
+  display: grid;
+  justify-items: end;
+  gap: 0.2rem;
+}
+
+.fixture-ready {
+  max-width: 50vw;
+  margin: 0;
+  padding: 0.18rem 0.45rem;
+  border: 1px solid #594c9f;
+  border-radius: 999px;
+  background: #171b24;
+  color: #cfd6e6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.62rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fixture-ready[data-ready="true"] {
+  border-color: #256b55;
+  background: #0d5a42;
+  color: #b8ffe3;
+}
+
 .task-cockpit {
   display: grid;
   gap: 0.42rem;
@@ -459,6 +487,16 @@ dd {
   .state-only,
   .shortcut-help {
     display: none;
+  }
+
+  .runtime-meta {
+    max-width: 42vw;
+  }
+
+  .fixture-ready {
+    max-width: 42vw;
+    padding: 0.15rem 0.35rem;
+    font-size: 0.56rem;
   }
 
   main {

@@ -6,7 +6,7 @@
     <meta name="codextubebench-static-fixture" content="TCE-002">
     <title>CodexTubeBench Static Fixture</title>
     <link rel="icon" href="data:,">
-    <link rel="stylesheet" href="./styles.css?fixture=v0.3">
+    <link rel="stylesheet" href="./styles.css?fixture=v0.3-ready">
   </head>
   <body>
     <header>
@@ -14,8 +14,27 @@
         <p class="eyebrow">Static protocol fallback</p>
         <h1>CodexTubeBench Player</h1>
       </div>
-      <p id="deployment-meta" class="deployment-meta">Loading fixture…</p>
+      <div class="runtime-meta" aria-label="Static fixture runtime status">
+        <p id="deployment-meta" class="deployment-meta">Loading fixture…</p>
+        <p
+          id="fixture-ready"
+          class="fixture-ready"
+          data-testid="fixture-ready"
+          data-ready="false"
+          data-fixture-id="codextubebench-static-tce-002"
+          data-fixture-version="codextubebench-static-fixture.v0.3"
+          data-task-id="TCE-002"
+          aria-live="polite"
+        >
+          Readiness: initializing
+        </p>
+      </div>
     </header>
+    <script
+      id="fixture-readiness-state"
+      data-testid="fixture-readiness-state"
+      type="application/json"
+    >{"ready":false}</script>
     <main>
       <section
         id="task-cockpit"
@@ -166,7 +185,7 @@
         CodexTubeBench CLI.
       </aside>
     </main>
-    <script src="./trace-handoff.js?fixture=v0.3"></script>
-    <script src="./app.js?fixture=v0.3"></script>
+    <script src="./trace-handoff.js?fixture=v0.3-ready"></script>
+    <script src="./app.js?fixture=v0.3-ready"></script>
   </body>
 </html>

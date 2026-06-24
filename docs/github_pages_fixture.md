@@ -12,13 +12,29 @@ It is not equivalent to the dynamic fixture:
 - no client-side scoring;
 - exported traces are manual/static protocol-validation artifacts.
 
+The page exposes a visible readiness indicator before task interaction:
+
+```html
+data-testid="fixture-ready"
+data-ready="true"
+```
+
+At runtime it also publishes `window.CodexTubeBenchStaticReady` and the
+`fixture-readiness-state` JSON DOM node with `fixture_id`, `fixture_version`,
+`deployed_revision`, `task_id`, `assets_loaded`, `trace_handoff_ready`,
+`scorer_contract_version`, and `initialized_at`. The readiness transition must
+not occur until `task.json`, `trace-template.json`, deployment metadata,
+the app JS, cockpit controls, trace textarea, trace handoff helpers, and the
+initial playback-state render are all available. It exposes no evaluator
+secret and does not add dynamic oracle behavior.
+
 The initial `task-cockpit` is deliberately no-scroll-first. At supported
-browser sizes it keeps the instruction, all three playback states, the single
-task action, verification, and status in the initial viewport. After the
-playing player is paused, verification becomes available. Selecting it
-idempotently submits the blank answer and switches the cockpit to a completed
-layout containing the result summary, visible trace textarea, and transfer
-controls without requiring page scrolling.
+browser sizes it keeps the readiness indicator, instruction, all three
+playback states, the single task action, verification, and status in the
+initial viewport. After the playing player is paused, verification becomes
+available. Selecting it idempotently submits the blank answer and switches the
+cockpit to a completed layout containing the result summary, visible trace
+textarea, and transfer controls without requiring page scrolling.
 
 Keyboard operation is available when focus is not already inside a control:
 
@@ -75,12 +91,32 @@ Its expected Pages root is:
 2. Configure Pages with GitHub Actions as the build source.
 3. Manually run **Deploy static CodexTubeBench fixture**.
 4. Record the deployed root in `CODEXTUBEBENCH_STATIC_FIXTURE_URL`.
-5. Verify the page and deployment metadata over HTTPS before running one
-   isolated GUI-native smoke.
+5. Verify the page, deployment metadata, and static readiness contract over
+   HTTPS before running one isolated GUI-native smoke.
 
 The manual workflow deploys only `docs/static-fixture/` and replaces
 `deployment-metadata.json` with the exact Git revision and workflow deployment
 identifier. It does not read repository secrets.
+
+## Static readiness precheck
+
+Before any future static attempt, run the lab-side precheck against the exact
+deployed revision:
+
+```bash
+cd ../youtube-benchmark-lab
+python3 scripts/check_static_fixture_ready.py \
+  --url "$CODEXTUBEBENCH_STATIC_FIXTURE_URL" \
+  --expected-revision "<expected-public-sha>" \
+  --task TCE-002 \
+  --output "runs/static_fixture/precheck/$(date -u +%Y%m%dT%H%M%SZ)/ready.json"
+```
+
+The precheck fetches the static root, `task.json`, `trace-template.json`,
+deployment metadata, and referenced JS/CSS assets. It requires HTTPS, matching
+revision metadata, TCE-002 task identity, readiness markers, and no obvious
+secret markers. A failing precheck is infrastructure evidence, not task
+behavior.
 
 ## Evidence boundary
 
