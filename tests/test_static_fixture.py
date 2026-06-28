@@ -126,6 +126,7 @@ class StaticFixtureTests(unittest.TestCase):
         self.assertIn('id="trace-json"', html)
         self.assertIn('id="select-trace"', html)
         self.assertIn('id="copy-trace"', html)
+        self.assertIn('data-testid="research-paper-link"', html)
         self.assertIn("navigator.clipboard.writeText", script)
         self.assertIn("selectTraceText", script)
         self.assertIn("sanitizePublicUrl", script)
@@ -441,6 +442,21 @@ class StaticFixtureTests(unittest.TestCase):
             server.shutdown()
             server.server_close()
             thread.join(timeout=2)
+
+    def test_public_pages_includes_research_paper_endpoint(self) -> None:
+        workflow = (
+            repository_root()
+            / ".github/workflows/deploy-static-fixture-pages.yml"
+        ).read_text(encoding="utf-8")
+        paper = (repository_root() / "docs/paper/index.html").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("cp -R docs/paper/. _site/paper/", workflow)
+        self.assertIn("CodexTubeBench: Empirical Analysis", paper)
+        self.assertIn("Readiness-gated repetition", paper)
+        self.assertIn("katex", paper.lower())
+        self.assertIn("Exact success placeholder", paper)
+        self.assertNotIn("/Users/", paper)
 
 
 if __name__ == "__main__":

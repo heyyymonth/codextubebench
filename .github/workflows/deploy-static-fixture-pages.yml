@@ -28,6 +28,8 @@ jobs:
         run: |
           mkdir -p _site
           cp -R docs/static-fixture/. _site/
+          mkdir -p _site/paper
+          cp -R docs/paper/. _site/paper/
           python3 - <<'PY'
           import json
           import os
