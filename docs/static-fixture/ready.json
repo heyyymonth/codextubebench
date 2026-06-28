@@ -1,0 +1,17 @@
+{
+  "deployed_revision": "unpublished",
+  "fixture_id": "codextubebench-static-tce-002",
+  "fixture_version": "codextubebench-static-fixture.v0.3",
+  "readiness_contract_version": "codextubebench-static-readiness.v0.1",
+  "ready": true,
+  "required_assets": [
+    "index.html",
+    "app.js",
+    "trace-handoff.js",
+    "styles.css",
+    "task.json",
+    "trace-template.json",
+    "deployment-metadata.json"
+  ],
+  "task_id": "TCE-002"
+}

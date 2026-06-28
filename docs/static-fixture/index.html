@@ -37,6 +37,49 @@
     >{"ready":false}</script>
     <main>
       <section
+        id="controller-probe"
+        class="controller-probe"
+        data-testid="controller-probe"
+        data-ready="false"
+        data-task-id="TCE-002"
+        data-fixture-id="codextubebench-static-tce-002"
+        data-fixture-version="codextubebench-static-fixture.v0.3"
+        data-readiness-contract-version="codextubebench-static-readiness.v0.1"
+        data-deployed-revision=""
+        aria-label="Controller readiness probe"
+      >
+        <p
+          id="controller-probe-ready-text"
+          class="controller-probe-ready-text"
+          data-testid="controller-probe-ready-text"
+        >
+          CODEXTUBEBENCH STATIC INITIALIZING
+        </p>
+        <div class="controller-probe-grid">
+          <div>
+            <span>Task</span>
+            <strong id="controller-probe-task-id" data-testid="controller-probe-task-id">TCE-002</strong>
+          </div>
+          <div>
+            <span>Revision</span>
+            <strong id="controller-probe-revision" data-testid="controller-probe-revision">loading</strong>
+          </div>
+          <div>
+            <span>Controls</span>
+            <strong id="controller-probe-controls-present" data-testid="controller-probe-controls-present">pending</strong>
+          </div>
+          <div>
+            <span>Trace textarea</span>
+            <strong id="controller-probe-trace-present" data-testid="controller-probe-trace-present">pending</strong>
+          </div>
+        </div>
+        <a
+          href="./index.html"
+          data-testid="controller-probe-main-link"
+        >Open full fixture</a>
+      </section>
+
+      <section
         id="task-cockpit"
         class="task-cockpit"
         data-testid="task-cockpit"

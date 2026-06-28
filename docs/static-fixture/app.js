@@ -2,6 +2,8 @@ const STATIC_FIXTURE_VERSION = "codextubebench-static-fixture.v0.3";
 const STATIC_FIXTURE_ID = "codextubebench-static-tce-002";
 const STATIC_ASSET_REVISION = "v0.3-ready";
 const SCORER_CONTRACT_VERSION = "codextubebench-static-trace-result.v0.1";
+const READINESS_CONTRACT_VERSION = "codextubebench-static-readiness.v0.1";
+const CONTROLLER_PROBE_QUERY_PARAM = "controller_probe";
 const {
   attemptOptionalTransfer,
   buildSummary,
@@ -25,6 +27,8 @@ let assetsLoaded = {
   app_js: true,
   trace_handoff_js: true,
 };
+const controllerProbeEnabled =
+  new URLSearchParams(window.location.search).get(CONTROLLER_PROBE_QUERY_PARAM) === "1";
 
 function now() {
   return new Date().toISOString();
@@ -84,6 +88,7 @@ function readinessChecks() {
   return {
     task_json_loaded: assetsLoaded.task_json,
     trace_template_json_loaded: assetsLoaded.trace_template_json,
+    deployment_metadata_json_loaded: assetsLoaded.deployment_metadata_json,
     app_js_initialized: true,
     cockpit_controls_attached: cockpitControlsAttached(),
     trace_textarea_exists: Boolean(document.querySelector("#trace-json")),
@@ -98,6 +103,7 @@ function publishReadiness({ready, initializedAt = null, error = null, checks = n
     fixture_version: STATIC_FIXTURE_VERSION,
     deployed_revision: deployment?.benchmark_git_revision ?? null,
     task_id: fixture?.task?.id ?? "TCE-002",
+    readiness_contract_version: READINESS_CONTRACT_VERSION,
     assets_loaded: {...assetsLoaded},
     trace_handoff_ready: traceHandoffReady(),
     scorer_contract_version: SCORER_CONTRACT_VERSION,
@@ -129,6 +135,7 @@ function publishReadiness({ready, initializedAt = null, error = null, checks = n
   if (stateNode) {
     stateNode.textContent = JSON.stringify(snapshot, null, 2);
   }
+  renderControllerProbe(snapshot);
   return snapshot;
 }
 
@@ -142,6 +149,60 @@ function markFixtureReady() {
     checks,
   });
   return ready;
+}
+
+function setProbeText(selector, value) {
+  const element = document.querySelector(selector);
+  if (element) {
+    element.textContent = value;
+    element.title = value;
+  }
+}
+
+function controlsPresentForProbe() {
+  return [
+    "#pause-playing",
+    "#final-state-verification",
+    "#submit-answer",
+    "#select-trace",
+    "#copy-trace",
+    "#download-trace",
+  ].every((selector) => Boolean(document.querySelector(selector)));
+}
+
+function traceTextareaPresentForProbe() {
+  return Boolean(document.querySelector("#trace-json"));
+}
+
+function renderControllerProbe(snapshot = window.CodexTubeBenchStaticReady) {
+  const probe = document.querySelector("#controller-probe");
+  if (!probe) {
+    return;
+  }
+  if (controllerProbeEnabled) {
+    document.body.dataset.controllerProbe = "true";
+  }
+  const ready = Boolean(snapshot?.ready);
+  const taskId = snapshot?.task_id ?? "TCE-002";
+  const revision = snapshot?.deployed_revision ?? deployment?.benchmark_git_revision ?? "";
+  const controlsPresent = controlsPresentForProbe();
+  const tracePresent = traceTextareaPresentForProbe();
+  probe.dataset.ready = ready ? "true" : "false";
+  probe.dataset.taskId = taskId;
+  probe.dataset.fixtureId = STATIC_FIXTURE_ID;
+  probe.dataset.fixtureVersion = STATIC_FIXTURE_VERSION;
+  probe.dataset.readinessContractVersion = READINESS_CONTRACT_VERSION;
+  probe.dataset.deployedRevision = revision;
+  probe.dataset.controlsPresent = controlsPresent ? "true" : "false";
+  probe.dataset.traceTextareaPresent = tracePresent ? "true" : "false";
+  setProbeText(
+    "#controller-probe-ready-text",
+    ready ? "CODEXTUBEBENCH STATIC READY" : "CODEXTUBEBENCH STATIC INITIALIZING",
+  );
+  setProbeText("#controller-probe-task-id", taskId);
+  setProbeText("#controller-probe-revision", revision || "pending");
+  setProbeText("#controller-probe-controls-present", controlsPresent ? "present" : "pending");
+  setProbeText("#controller-probe-trace-present", tracePresent ? "present" : "pending");
 }
 
 function recordRender(details) {

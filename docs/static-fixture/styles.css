@@ -50,6 +50,70 @@ main {
   margin: 0.5rem auto 2rem;
 }
 
+.controller-probe {
+  display: none;
+  gap: 0.42rem;
+  margin-bottom: 0.5rem;
+  padding: 0.6rem;
+  border: 1px solid #256b55;
+  border-radius: 10px;
+  background: #0d1f1a;
+}
+
+body[data-controller-probe="true"] .controller-probe {
+  display: grid;
+}
+
+.controller-probe-ready-text {
+  margin: 0;
+  color: #b8ffe3;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.controller-probe-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.3rem;
+}
+
+.controller-probe-grid div {
+  min-width: 0;
+  padding: 0.35rem;
+  border-radius: 7px;
+  background: #11141c;
+}
+
+.controller-probe-grid span {
+  display: block;
+  color: #919ab0;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.controller-probe-grid strong {
+  display: block;
+  margin-top: 0.1rem;
+  overflow: hidden;
+  color: #e5e9f5;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.controller-probe a {
+  color: #b8ffe3;
+  font-size: 0.72rem;
+}
+
+body[data-controller-probe="true"] .details-panel,
+body[data-controller-probe="true"] .notice {
+  display: none;
+}
+
 .eyebrow {
   margin-bottom: 0.15rem;
   color: #aeb6ca;
@@ -502,6 +566,16 @@ dd {
   main {
     width: calc(100% - 0.5rem);
     margin-top: 0.25rem;
+  }
+
+  .controller-probe {
+    margin-bottom: 0.35rem;
+    padding: 0.45rem;
+  }
+
+  .controller-probe-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.25rem;
   }
 
   .task-cockpit {

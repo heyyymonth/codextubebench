@@ -141,6 +141,12 @@ class StaticFixtureTests(unittest.TestCase):
         for element_id in (
             "fixture-ready",
             "fixture-readiness-state",
+            "controller-probe",
+            "controller-probe-ready-text",
+            "controller-probe-task-id",
+            "controller-probe-revision",
+            "controller-probe-controls-present",
+            "controller-probe-trace-present",
             "task-cockpit",
             "task-instruction",
             "player-state-list",
@@ -159,6 +165,13 @@ class StaticFixtureTests(unittest.TestCase):
         for test_id in (
             "fixture-ready",
             "fixture-readiness-state",
+            "controller-probe",
+            "controller-probe-ready-text",
+            "controller-probe-task-id",
+            "controller-probe-revision",
+            "controller-probe-controls-present",
+            "controller-probe-trace-present",
+            "controller-probe-main-link",
             "task-cockpit",
             "task-instruction",
             "player-state-list",
@@ -187,6 +200,7 @@ class StaticFixtureTests(unittest.TestCase):
         self.assertIn("@media (max-width: 600px)", styles)
         self.assertIn("@media (max-height: 620px)", styles)
         self.assertIn('body[data-phase="completed"]', styles)
+        self.assertIn('body[data-controller-probe="true"]', styles)
         self.assertIn("min-height: 122px", styles)
         self.assertNotIn("position: fixed", styles)
 
@@ -201,6 +215,7 @@ class StaticFixtureTests(unittest.TestCase):
             "fixture_version",
             "deployed_revision",
             "task_id",
+            "readiness_contract_version",
             "assets_loaded",
             "trace_handoff_ready",
             "scorer_contract_version",
@@ -210,6 +225,7 @@ class StaticFixtureTests(unittest.TestCase):
         for readiness_check in (
             "task_json_loaded",
             "trace_template_json_loaded",
+            "deployment_metadata_json_loaded",
             "app_js_initialized",
             "cockpit_controls_attached",
             "trace_textarea_exists",
@@ -221,6 +237,52 @@ class StaticFixtureTests(unittest.TestCase):
             script.index("renderCockpitStates();"),
             script.rindex("markFixtureReady()"),
         )
+
+    def test_static_fixture_exposes_lightweight_controller_probe(self) -> None:
+        html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
+        script = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
+        styles = (STATIC_DIR / "styles.css").read_text(encoding="utf-8")
+        for marker in (
+            'data-testid="controller-probe"',
+            'data-testid="controller-probe-ready-text"',
+            'data-testid="controller-probe-task-id"',
+            'data-testid="controller-probe-revision"',
+            'data-testid="controller-probe-controls-present"',
+            'data-testid="controller-probe-trace-present"',
+            "CODEXTUBEBENCH STATIC INITIALIZING",
+        ):
+            self.assertIn(marker, html)
+        self.assertIn('CONTROLLER_PROBE_QUERY_PARAM = "controller_probe"', script)
+        self.assertIn("renderControllerProbe(snapshot)", script)
+        self.assertIn('document.body.dataset.controllerProbe = "true"', script)
+        self.assertIn('body[data-controller-probe="true"] .controller-probe', styles)
+
+    def test_static_fixture_exposes_lightweight_readiness_endpoints(self) -> None:
+        ready_txt = (STATIC_DIR / "ready.txt").read_text(encoding="utf-8")
+        ready_json = json.loads((STATIC_DIR / "ready.json").read_text(encoding="utf-8"))
+        ready_html = (STATIC_DIR / "ready.html").read_text(encoding="utf-8")
+        self.assertEqual("CODEXTUBEBENCH_STATIC_READY", ready_txt.splitlines()[0])
+        self.assertIn("fixture_id=codextubebench-static-tce-002", ready_txt)
+        self.assertIn("fixture_version=codextubebench-static-fixture.v0.3", ready_txt)
+        self.assertIn("task_id=TCE-002", ready_txt)
+        self.assertIn(
+            "readiness_contract_version=codextubebench-static-readiness.v0.1",
+            ready_txt,
+        )
+        self.assertEqual("codextubebench-static-tce-002", ready_json["fixture_id"])
+        self.assertEqual("codextubebench-static-fixture.v0.3", ready_json["fixture_version"])
+        self.assertEqual("codextubebench-static-readiness.v0.1", ready_json["readiness_contract_version"])
+        self.assertEqual("TCE-002", ready_json["task_id"])
+        self.assertTrue(ready_json["ready"])
+        self.assertIn("deployment-metadata.json", ready_json["required_assets"])
+        self.assertIn("CODEXTUBEBENCH STATIC READY", ready_html)
+        self.assertIn('data-testid="controller-ready"', ready_html)
+        self.assertIn('data-ready="true"', ready_html)
+        self.assertIn('data-task-id="TCE-002"', ready_html)
+        self.assertIn('data-fixture-version="codextubebench-static-fixture.v0.3"', ready_html)
+        self.assertIn('data-deployed-revision="unpublished"', ready_html)
+        self.assertNotIn("<script", ready_html.lower())
+        self.assertNotIn("<link", ready_html.lower())
 
     def test_keyboard_shortcuts_are_scoped_away_from_controls(self) -> None:
         script = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
@@ -368,6 +430,9 @@ class StaticFixtureTests(unittest.TestCase):
                 "task.json",
                 "trace-template.json",
                 "deployment-metadata.json",
+                "ready.txt",
+                "ready.json",
+                "ready.html",
             ):
                 response = urlopen(f"{base_url}/{asset}")
                 self.assertEqual(200, response.status)

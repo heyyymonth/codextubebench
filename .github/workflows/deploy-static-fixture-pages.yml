@@ -31,17 +31,75 @@ jobs:
           python3 - <<'PY'
           import json
           import os
+          from datetime import datetime, timezone
           from pathlib import Path
 
+          revision = os.environ["GITHUB_SHA"]
+          deployment_id = os.environ["DEPLOYMENT_ID"]
+          generated_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+          fixture_id = "codextubebench-static-tce-002"
+          fixture_version = "codextubebench-static-fixture.v0.3"
+          readiness_contract_version = "codextubebench-static-readiness.v0.1"
+          task_id = "TCE-002"
           metadata = {
-              "benchmark_git_revision": os.environ["GITHUB_SHA"],
+              "benchmark_git_revision": revision,
               "benchmark_git_dirty": False,
-              "deployment_id": os.environ["DEPLOYMENT_ID"],
+              "deployment_id": deployment_id,
           }
           Path("_site/deployment-metadata.json").write_text(
               json.dumps(metadata, indent=2, sort_keys=True) + "\n",
               encoding="utf-8",
           )
+          Path("_site/ready.txt").write_text(
+              "\n".join(
+                  [
+                      "CODEXTUBEBENCH_STATIC_READY",
+                      f"fixture_id={fixture_id}",
+                      f"fixture_version={fixture_version}",
+                      f"task_id={task_id}",
+                      f"readiness_contract_version={readiness_contract_version}",
+                      f"deployed_revision={revision}",
+                      f"deployment_id={deployment_id}",
+                      f"generated_at={generated_at}",
+                  ]
+              )
+              + "\n",
+              encoding="utf-8",
+          )
+          readiness = {
+              "ready": True,
+              "fixture_id": fixture_id,
+              "fixture_version": fixture_version,
+              "task_id": task_id,
+              "readiness_contract_version": readiness_contract_version,
+              "deployed_revision": revision,
+              "deployment_id": deployment_id,
+              "generated_at": generated_at,
+              "required_assets": [
+                  "index.html",
+                  "app.js",
+                  "trace-handoff.js",
+                  "styles.css",
+                  "task.json",
+                  "trace-template.json",
+                  "deployment-metadata.json",
+              ],
+          }
+          Path("_site/ready.json").write_text(
+              json.dumps(readiness, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          ready_html = Path("_site/ready.html")
+          html = ready_html.read_text(encoding="utf-8")
+          html = html.replace('data-deployed-revision="unpublished"', f'data-deployed-revision="{revision}"')
+          html = html.replace(">unpublished</span>", f">{revision}</span>")
+          html = html.replace(
+              "</main>",
+              f"<p>Deployment: <span data-testid=\"ready-deployment-id\">{deployment_id}</span></p>"
+              f"<p>Generated: <span data-testid=\"ready-generated-at\">{generated_at}</span></p>"
+              "</main>",
+          )
+          ready_html.write_text(html, encoding="utf-8")
           PY
 
       - name: Upload Pages artifact

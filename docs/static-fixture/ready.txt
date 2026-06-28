@@ -1,0 +1,6 @@
+CODEXTUBEBENCH_STATIC_READY
+fixture_id=codextubebench-static-tce-002
+fixture_version=codextubebench-static-fixture.v0.3
+task_id=TCE-002
+readiness_contract_version=codextubebench-static-readiness.v0.1
+deployed_revision=unpublished
