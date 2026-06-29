@@ -1,4 +1,5 @@
 import json
+import os
 import shutil
 import subprocess
 import tempfile
@@ -20,6 +21,32 @@ from tubebench.executable import (
 
 
 STATIC_DIR = repository_root() / "docs" / "static-fixture"
+
+
+def node_executable() -> str | None:
+    candidates = [
+        os.environ.get("NODE"),
+        str(
+            Path.home()
+            / ".cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node"
+        ),
+        shutil.which("node"),
+    ]
+    for candidate in candidates:
+        if not candidate:
+            continue
+        completed = subprocess.run(
+            [candidate, "--version"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if completed.returncode == 0:
+            return candidate
+    return None
+
+
+NODE = node_executable()
 
 
 class QuietStaticHandler(SimpleHTTPRequestHandler):
@@ -401,10 +428,14 @@ class StaticFixtureTests(unittest.TestCase):
             self.assertFalse(result["valid"])
             self.assertEqual("trace_validation_failure", result["failure_category"])
 
-    @unittest.skipUnless(shutil.which("node"), "Node.js is required for JS runtime tests")
+    @unittest.skipUnless(NODE, "Node.js is required for JS runtime tests")
     def test_dependency_free_trace_handoff_javascript(self) -> None:
         completed = subprocess.run(
-            ["node", "--test", str(repository_root() / "tests" / "static_trace_handoff.test.js")],
+            [
+                NODE,
+                "--test",
+                str(repository_root() / "tests" / "static_trace_handoff.test.js"),
+            ],
             cwd=repository_root(),
             capture_output=True,
             text=True,
@@ -452,10 +483,9 @@ class StaticFixtureTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn("cp -R docs/paper/. _site/paper/", workflow)
-        self.assertIn("CodexTubeBench: Empirical Analysis", paper)
-        self.assertIn("Readiness-gated repetition", paper)
-        self.assertIn("katex", paper.lower())
-        self.assertIn("Exact success placeholder", paper)
+        self.assertIn("TubeBench paper PDF", paper)
+        self.assertIn("tubebench.pdf", paper)
+        self.assertIn('data-testid="research-paper-pdf-link"', paper)
         self.assertNotIn("/Users/", paper)
 
 
