@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.org/tubebench/longform-result-v1.schema.json",
-  "title": "CodexTubeBench long-form result",
+  "title": "TubeBench long-form result",
   "type": "object",
   "required": [
     "schema_version",

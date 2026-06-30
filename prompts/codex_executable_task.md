@@ -1,6 +1,6 @@
 # Codex deterministic-task prompt
 
-Perform the single YouTube-like browser task shown in the CodexTubeBench local
+Perform the single YouTube-like browser task shown in the TubeBench local
 fixture.
 
 - Use only the interaction channels allowed by the declared mode.

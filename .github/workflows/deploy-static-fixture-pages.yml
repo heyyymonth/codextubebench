@@ -1,4 +1,4 @@
-name: Deploy static CodexTubeBench fixture
+name: Deploy static TubeBench fixture
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: codextubebench-static-pages
+  group: tubebench-static-pages
   cancel-in-progress: false
 
 jobs:

@@ -9,10 +9,9 @@ This implementation does not mean a deployment exists. Until an operator
 supplies an approved HTTPS origin and evaluator secret, no Codex attempt may be
 run and no result aggregate may be created.
 
-`CODEXTUBEBENCH_PUBLIC_BASE_URL` is reserved for this dynamic service. Do not
-point it at a static GitHub Pages fallback; use
-`CODEXTUBEBENCH_STATIC_FIXTURE_URL` as documented in
-`github_pages_fixture.md`.
+The legacy `CODEXTUBEBENCH_PUBLIC_BASE_URL` variable is reserved for this
+dynamic service. Do not point it at a static GitHub Pages fallback; use
+`CODEXTUBEBENCH_STATIC_FIXTURE_URL` as documented in `github_pages_fixture.md`.
 
 ## Security and topology
 
@@ -40,7 +39,7 @@ test -z "$(git status --porcelain)" || {
   exit 1
 }
 REVISION="$(git rev-parse HEAD)"
-IMAGE="REGISTRY.example/codextubebench-fixture:${REVISION}"
+IMAGE="REGISTRY.example/tubebench-fixture:${REVISION}"
 docker build --pull --label "org.opencontainers.image.revision=${REVISION}" \
   --tag "${IMAGE}" .
 docker push "${IMAGE}"
@@ -67,8 +66,8 @@ CODEXTUBEBENCH_MAX_SESSIONS=128
 Provider-neutral container invocation:
 
 ```bash
-docker run --detach --name codextubebench-fixture \
-  --env-file /secure/path/codextubebench-fixture.env \
+docker run --detach --name tubebench-fixture \
+  --env-file /secure/path/tubebench-fixture.env \
   --publish 127.0.0.1:8080:8080 \
   --read-only --tmpfs /tmp:rw,noexec,nosuid,size=16m \
   --cap-drop ALL --security-opt no-new-privileges \
@@ -146,8 +145,8 @@ not export it to the paper or treat it as repeated empirical evidence.
 Disable public routing first, then stop and remove the ephemeral service:
 
 ```bash
-docker stop codextubebench-fixture
-docker rm codextubebench-fixture
+docker stop tubebench-fixture
+docker rm tubebench-fixture
 ```
 
 Revoke the evaluator secret and confirm the HTTPS origin no longer serves the

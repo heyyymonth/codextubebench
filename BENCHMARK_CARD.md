@@ -1,8 +1,8 @@
-# CodexTubeBench Benchmark Card
+# TubeBench Benchmark Card
 
 ## Purpose
 
-CodexTubeBench evaluates Codex on YouTube browser-use tasks. It captures what
+TubeBench evaluates Codex on YouTube browser-use tasks. It captures what
 Codex observes and does, checks whether the requested outcome is achieved, and
 classifies failures involving grounding, media state, verification, side
 effects, restoration, timestamps, and observation strategy.
@@ -74,5 +74,5 @@ cost/latency telemetry are not implemented.
 
 ## Non-affiliation
 
-CodexTubeBench is independent and is not affiliated with, endorsed by, or
+TubeBench is independent and is not affiliated with, endorsed by, or
 sponsored by YouTube, Google, or OpenAI.

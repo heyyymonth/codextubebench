@@ -261,7 +261,7 @@ class FixtureApplication:
 
 def make_handler(application: FixtureApplication) -> type[BaseHTTPRequestHandler]:
     class Handler(BaseHTTPRequestHandler):
-        server_version = "CodexTubeBenchFixture/0.1"
+        server_version = "TubeBenchFixture/0.1"
 
         def log_message(self, format: str, *args: Any) -> None:
             return
@@ -504,7 +504,7 @@ def serve(
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Run the deterministic CodexTubeBench player fixture"
+        description="Run the deterministic TubeBench player fixture"
     )
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)

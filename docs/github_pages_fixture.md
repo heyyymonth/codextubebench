@@ -19,7 +19,8 @@ data-testid="fixture-ready"
 data-ready="true"
 ```
 
-At runtime it also publishes `window.CodexTubeBenchStaticReady` and the
+At runtime it also publishes the legacy compatibility global
+`window.CodexTubeBenchStaticReady` and the
 `fixture-readiness-state` JSON DOM node with `fixture_id`, `fixture_version`,
 `deployed_revision`, `task_id`, `assets_loaded`, `trace_handoff_ready`,
 `scorer_contract_version`, and `initialized_at`. The readiness transition must
@@ -43,8 +44,9 @@ Keyboard operation is available when focus is not already inside a control:
 - `C` attempts to copy the visible trace after completion;
 - Tab and Enter retain their native meanings.
 
-Keep `CODEXTUBEBENCH_PUBLIC_BASE_URL` reserved for the dynamic fixture contract
-documented in `hosted_fixture.md`. Set the eventual static URL separately:
+Keep the legacy `CODEXTUBEBENCH_PUBLIC_BASE_URL` variable reserved for the
+dynamic fixture contract documented in `hosted_fixture.md`. Set the eventual
+static URL separately:
 
 ```bash
 export CODEXTUBEBENCH_STATIC_FIXTURE_URL="https://heyyymonth.github.io/codextubebench/"
@@ -89,7 +91,7 @@ Its expected Pages root is:
 
 1. Push the intended clean public revision to `main`.
 2. Configure Pages with GitHub Actions as the build source.
-3. Manually run **Deploy static CodexTubeBench fixture**.
+3. Manually run **Deploy static TubeBench fixture**.
 4. Record the deployed root in `CODEXTUBEBENCH_STATIC_FIXTURE_URL`.
 5. Verify the page, deployment metadata, and static readiness contract over
    HTTPS before running one isolated GUI-native smoke.

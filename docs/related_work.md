@@ -1,6 +1,6 @@
 # Brief Background
 
-CodexTubeBench is not organized around a novelty claim. Its practical question
+TubeBench is not organized around a novelty claim. Its practical question
 is whether Codex can complete YouTube browser tasks safely and correctly.
 
 WebArena and OSWorld establish end-to-end web/computer-use evaluation.
@@ -14,7 +14,7 @@ operational question used here:
 > What does Codex actually do on long-form YouTube tasks, which actions and
 > observations lead to success, and where does it fail?
 
-CodexTubeBench therefore focuses on trace capture, YouTube player/tab state,
+TubeBench therefore focuses on trace capture, YouTube player/tab state,
 verification, side effects, restoration, timestamp evidence, and reproducible
 failure replay. Any comparative or first-of-kind claim requires a separate
 documented literature review and empirical evidence.

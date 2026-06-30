@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.org/longformmediabench/live-youtube-trace-v0.1.schema.json",
-  "title": "CodexTubeBench private live YouTube trace v0.1",
+  "title": "TubeBench private live YouTube trace v0.1",
   "type": "object",
   "required": [
     "schema_version",

@@ -1,4 +1,4 @@
-# CodexTubeBench Metrics
+# TubeBench Metrics
 
 Metrics are derived from complete Codex traces. The nine core metrics below are
 the current reporting contract. Status labels are:

@@ -1,6 +1,6 @@
-# CodexTubeBench
+# TubeBench
 
-CodexTubeBench is a benchmark and evaluation harness for measuring how Codex
+TubeBench is a benchmark and evaluation harness for measuring how Codex
 performs on YouTube browser-use tasks. It records Codex actions and
 observations, scores task completion and side effects, and turns observed
 failures into reproducible benchmark cases.
@@ -10,9 +10,11 @@ The core question is:
 > How well can Codex use YouTube in a browser to complete long-form media
 > tasks, and where does it fail?
 
-CodexTubeBench is the benchmark name. The Python package remains `tubebench`
+TubeBench is the benchmark name. The Python package remains `tubebench`
 for backward compatibility, and existing catalog/schema identifiers are
-preserved.
+preserved. Deployed URLs, `codextubebench-*` schema/fixture IDs,
+`CODEXTUBEBENCH_*` environment variables, and `CodexTubeBenchStatic*`
+JavaScript globals remain compatibility contracts.
 
 ## What is included
 
@@ -172,8 +174,8 @@ Partial or not yet automated:
 - `docs/limitations.md`
 - `docs/roadmap.md`
 
-Background research material is secondary and archived material is explicitly
-non-authoritative.
+Background research material is excluded from source-of-truth docs unless it is
+reintroduced through the current benchmark framing.
 
 ## Safety and privacy
 
@@ -182,5 +184,5 @@ sign in, download media, interact with ads, or mutate accounts. Never commit
 credentials, cookies, browser profiles, account identifiers, raw authenticated
 captures, unrelated tabs, or full third-party transcripts.
 
-CodexTubeBench is independent and is not affiliated with, endorsed by, or
+TubeBench is independent and is not affiliated with, endorsed by, or
 sponsored by YouTube, Google, or OpenAI.

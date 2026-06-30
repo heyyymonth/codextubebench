@@ -1,6 +1,6 @@
 # Single-Run Codex Evaluation Protocol
 
-This protocol runs Codex on one deterministic CodexTubeBench task, captures the
+This protocol runs Codex on one deterministic TubeBench task, captures the
 browser interaction as a trace, and scores it with the public evaluator. It is
 manual/semiautomatic; the repository does not yet launch repeated Codex runs
 through a provider API. The output label is `Codex protocol validation`, not a

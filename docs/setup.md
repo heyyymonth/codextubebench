@@ -1,6 +1,6 @@
-# CodexTubeBench Setup
+# TubeBench Setup
 
-CodexTubeBench is the benchmark name. The Python package and CLI remain
+TubeBench is the benchmark name. The Python package and CLI remain
 `tubebench` for backward compatibility.
 
 ## Local validation

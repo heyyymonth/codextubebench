@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "CodexTubeBench compatibility task result",
+  "title": "TubeBench compatibility task result",
   "type": "object",
   "required": [
     "schema_version", "run_id", "task_id", "agent", "seed",

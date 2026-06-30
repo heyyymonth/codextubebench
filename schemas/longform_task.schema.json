@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.org/tubebench/longform-task-v1.schema.json",
-  "title": "CodexTubeBench long-form YouTube task",
+  "title": "TubeBench long-form YouTube task",
   "type": "object",
   "required": [
     "schema_version",

@@ -1,8 +1,8 @@
-# CodexTubeBench Roadmap
+# TubeBench Roadmap
 
 ## Current
 
-- Freeze the CodexTubeBench identity and source-of-truth docs.
+- Freeze the TubeBench identity and source-of-truth docs.
 - Preserve and validate the 12 deterministic fixture tasks.
 - Preserve and validate the 12 live YouTube task contracts.
 - Use the failure taxonomy for every new failed or partial Codex trace.

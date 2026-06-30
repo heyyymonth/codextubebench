@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.org/tubebench/longform-trace-v1.schema.json",
-  "title": "CodexTubeBench long-form trace event",
+  "title": "TubeBench long-form trace event",
   "type": "object",
   "required": [
     "schema_version",

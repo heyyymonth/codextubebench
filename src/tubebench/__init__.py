@@ -1,4 +1,4 @@
-"""CodexTubeBench public benchmark package.
+"""TubeBench public benchmark package.
 
 The import package remains ``tubebench`` for compatibility.
 """

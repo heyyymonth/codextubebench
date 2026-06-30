@@ -1,6 +1,6 @@
 # Repeated Codex run protocol
 
-Use this operator checklist for every repeated CodexTubeBench attempt.
+Use this operator checklist for every repeated TubeBench attempt.
 
 1. Pin benchmark revision, task revision, prompt revision, mode, Codex
    identifier, browser build, and viewport.
