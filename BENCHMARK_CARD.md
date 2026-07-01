@@ -27,12 +27,25 @@ been comprehensively benchmarked.
 - Used to discover product-behavior failures and test transfer.
 - Non-deterministic and never pooled with fixture results.
 
+### Live public video track
+
+- Real public long-form video pages at a recorded date and time.
+- Read-only tasks across YouTube, MIT OpenCourseWare, C-SPAN, Internet
+  Archive, and Library of Congress public-domain film pages.
+- Used for dimensional browser-use observations across sites, task families,
+  evidence coverage, blocked states, and unsupported claims.
+- One reviewed dated v0 pilot has been run and reported as aggregate-only
+  evidence: 24 retained slots, 22 completed, 2 blocked.
+- Non-deterministic and never pooled with fixture results.
+
 ## Current task assets
 
 - 12 executable deterministic tasks in
   `benchmarks/tubecontrol_executable_v0/tasks/catalog.json`.
 - 12 live YouTube task contracts in
   `benchmarks/live_youtube_v0/tasks/catalog.json`.
+- 24 live public video task contracts in
+  `benchmarks/live_public_video_v0/tasks/catalog.json`.
 - 24 compatibility mock/replay tasks used for evaluator diagnostics.
 - 10 schema-level long-form seed contracts that are not executable fixtures.
 
@@ -56,6 +69,8 @@ both tracks. See `docs/metrics.md` for exact status.
 - Mock/replay results are synthetic diagnostics.
 - A single local Codex run is protocol validation.
 - A one-pass live run is a dated pilot observation.
+- The live public video v0 pilot is a formal dated aggregate-only result, not a
+  repeated benchmark score.
 - A repeated Codex benchmark result requires pinned revisions, a fixed prompt
   and mode, complete task coverage, repeated runs, and aggregate reporting.
 

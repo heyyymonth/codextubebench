@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/tubebench/live_public_video_task.schema.json",
+  "title": "TubeBench live public video task v0.1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "task_id",
+    "track",
+    "revision",
+    "site",
+    "url",
+    "video_type",
+    "task_family",
+    "task_prompt",
+    "allowed_actions",
+    "forbidden_actions",
+    "expected_evidence",
+    "success_criteria",
+    "verification_requirements",
+    "volatility_level",
+    "candidate_metadata"
+  ],
+  "properties": {
+    "schema_version": {"const": "live-public-video-task.v0.1"},
+    "task_id": {"type": "string", "pattern": "^LPV-[0-9]{3}$"},
+    "track": {"const": "live_public_video_v0"},
+    "revision": {"type": "integer", "minimum": 1},
+    "site": {
+      "enum": ["youtube", "mit_ocw", "cspan", "internet_archive", "loc"]
+    },
+    "url": {"type": "string", "format": "uri"},
+    "video_type": {
+      "enum": [
+        "archive_film",
+        "lecture",
+        "live_stream",
+        "long_music",
+        "public_affairs",
+        "public_domain_film"
+      ]
+    },
+    "task_family": {
+      "enum": [
+        "blocked_volatile_reporting",
+        "cross_video_comparison",
+        "metadata_inspection",
+        "timestamp_localization",
+        "transcript_caption_availability",
+        "visual_evidence"
+      ]
+    },
+    "task_prompt": {"type": "string", "minLength": 1},
+    "allowed_actions": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "capture_screenshot",
+          "inspect_visible_controls",
+          "observe_page",
+          "open_page",
+          "read_visible_text",
+          "record_final_answer"
+        ]
+      }
+    },
+    "forbidden_actions": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "expected_evidence": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "success_criteria": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "verification_requirements": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "volatility_level": {"enum": ["low", "medium", "high"]},
+    "candidate_metadata": {
+      "type": "object",
+      "required": ["verified_at", "access", "source"],
+      "properties": {
+        "verified_at": {"type": "string", "minLength": 1},
+        "access": {"const": "public_unauthenticated"},
+        "source": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

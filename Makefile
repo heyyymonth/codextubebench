@@ -12,6 +12,7 @@ validate:
 	$(PYTHON) -m tubebench.cli validate-longform
 	$(PYTHON) -m tubebench.cli validate-executable
 	$(PYTHON) -m tubebench.cli validate-live-youtube
+	$(PYTHON) -m tubebench.cli validate-live-public-video
 
 smoke:
 	rm -rf runs/smoke
