@@ -18,12 +18,22 @@ completed 22, blocked 2, and recorded 0 unsupported claims. This is a formal
 dated live-public pilot result, not a deterministic leaderboard and not a
 repeated browser-agent benchmark result.
 
-The next independent campaign uses the additive
+The completed independent campaign uses the additive
 `live-public-video-trace.v0.2` contract. It predeclares 72 fresh retained
 slots (`24 tasks x 3 repetitions`) and records a campaign/manifest digest,
 clean benchmark and lab revisions, prompt/catalog/config digests, and runtime
 metadata in every trace. The original v0.1 pilot contract remains valid and is
 not migrated or pooled into the campaign.
+
+The retained-v1 campaign ran on July 14, 2026 and reconciled all 72 reviewed
+attempts: 63 completed, 9 partial, and none failed, blocked, or became invalid.
+Seeds `17`, `29`, and `43` each produced 21 completed and 3 partial attempts.
+The same three timestamp-localization tasks were partial in every repetition;
+the other 21 tasks completed in all three. Evidence and screenshot coverage
+were both 1.0, with zero unsupported claims and zero side-effect incidents.
+This is a repeated dated live-public result for one browser/model configuration,
+not a deterministic leaderboard, cross-agent comparison, or general competence
+claim.
 
 ## Scope
 
@@ -115,3 +125,8 @@ and only after a separate evidence review.
 The approved v0 paper handoff is aggregate-only. It excludes attempt IDs, raw
 paths, screenshots, raw observations, page text, browser profiles, cookies,
 tokens, account fields, and transcript dumps.
+
+The approved retained-v1 handoff applies the same exclusion boundary and adds
+only aggregate repetition, site, task-family, task-stability, outcome,
+criterion, failure-type, and failure-stage summaries. The original pilot is
+not pooled into its denominator.
