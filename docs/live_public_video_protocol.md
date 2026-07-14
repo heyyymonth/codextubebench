@@ -18,6 +18,13 @@ completed 22, blocked 2, and recorded 0 unsupported claims. This is a formal
 dated live-public pilot result, not a deterministic leaderboard and not a
 repeated browser-agent benchmark result.
 
+The next independent campaign uses the additive
+`live-public-video-trace.v0.2` contract. It predeclares 72 fresh retained
+slots (`24 tasks x 3 repetitions`) and records a campaign/manifest digest,
+clean benchmark and lab revisions, prompt/catalog/config digests, and runtime
+metadata in every trace. The original v0.1 pilot contract remains valid and is
+not migrated or pooled into the campaign.
+
 ## Scope
 
 The track measures whether an agent can open public video pages, inspect
@@ -69,6 +76,12 @@ Private attempts use:
 schemas/live_public_video_trace.schema.json
 ```
 
+The retained-v1 campaign uses:
+
+```text
+schemas/live_public_video_trace_v0.2.schema.json
+```
+
 The trace records observations, screenshot refs, page refs, browser/tool calls,
 actions, watched intervals, criteria results, final answer, final verification,
 failures, recovery attempts, side effects, metrics, and outcome.
@@ -77,6 +90,11 @@ Screenshots and raw traces stay in the lab repository under ignored run paths.
 Trace validation rejects raw browser/account artifacts such as cookies,
 profiles, credentials, raw DOM, local storage, browser history, and transcript
 dumps.
+
+For v0.2, a browser-controller or capture failure after a slot starts may
+retain an empty screenshot/observation set only when the outcome is explicitly
+`blocked` or `invalid` with a matching runtime/capture failure. This preserves
+the failed slot without fabricating evidence.
 
 Trace validation command:
 

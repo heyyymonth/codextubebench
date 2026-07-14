@@ -34,6 +34,10 @@ Do not begin reporting until the worktree is clean and revisions are pinned.
 - Starting point: the 24-slot `live_public_video_v0` pilot completed 22 slots
   and blocked 2 on June 30, 2026.
 - Next campaign: 24 tasks x 3 retained seeds = 72 attempts.
+- Planning contract: `live-public-video-retained-v1` uses fresh retained
+  repetition IDs `17`, `29`, and `43`; it does not reuse the pilot seed.
+- Trace contract: `live-public-video-trace.v0.2`, with clean revision and
+  manifest provenance required for every retained slot.
 - Safety: public, unauthenticated, isolated browser, read-only, no downloads,
   no ad interaction, no account mutation, no comments/chat/likes/subscribes.
 - Capture: private traces and screenshots under the lab run tree only.

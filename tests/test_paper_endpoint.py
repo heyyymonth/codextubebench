@@ -1,5 +1,8 @@
 import unittest
+import json
 from pathlib import Path
+
+from scripts.validate_paper_artifact import validate
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,6 +22,17 @@ class PaperEndpointTests(unittest.TestCase):
         self.assertIn("tubebench.pdf", index)
         self.assertIn('href="./paper/tubebench.pdf"', fixture)
         self.assertIn('data-testid="research-paper-link"', fixture)
+
+    def test_public_paper_provenance_matches_pdf(self) -> None:
+        provenance = json.loads(
+            (ROOT / "docs/paper/provenance.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual([], validate())
+        self.assertEqual(
+            "tubebench.paper-artifact-provenance.v1",
+            provenance["schema_version"],
+        )
+        self.assertFalse(provenance["paper_source_dirty"])
 
 
 if __name__ == "__main__":

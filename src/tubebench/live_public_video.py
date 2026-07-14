@@ -9,6 +9,8 @@ from .io import read_json
 
 TASK_SCHEMA_VERSION = "live-public-video-task.v0.1"
 TRACE_SCHEMA_VERSION = "live-public-video-trace.v0.1"
+TRACE_SCHEMA_VERSION_V2 = "live-public-video-trace.v0.2"
+TRACE_SCHEMA_VERSIONS = {TRACE_SCHEMA_VERSION, TRACE_SCHEMA_VERSION_V2}
 TRACK = "live_public_video_v0"
 
 SITES = {"youtube", "mit_ocw", "cspan", "internet_archive", "loc"}
@@ -77,6 +79,7 @@ FAILURE_TYPES = {
     "weak_verification",
     "overconfident_final_answer",
     "runtime_browser_controller_failure",
+    "trace_capture_failure",
     "public_site_volatility",
 }
 FAILURE_STAGES = {
@@ -88,6 +91,7 @@ FAILURE_STAGES = {
     "verification",
     "final_answer",
     "runtime",
+    "capture",
     "evaluation",
 }
 
@@ -143,6 +147,18 @@ REQUIRED_TRACE_FIELDS = {
     "outcome",
     "errors",
     "qualitative_notes",
+}
+
+REQUIRED_TRACE_V2_FIELDS = {
+    "campaign_id",
+    "seed",
+    "manifest_digest",
+    "config_digest",
+    "catalog_digest",
+    "prompt_digest",
+    "lab_git_revision",
+    "lab_git_dirty",
+    "runtime",
 }
 
 SENSITIVE_TRACE_KEYS = {
@@ -291,7 +307,11 @@ def validate_live_public_video_catalog(tasks: list[dict[str, Any]]) -> list[str]
 
 def validate_live_public_video_trace(trace: dict[str, Any]) -> list[str]:
     errors: list[str] = []
-    missing = sorted(REQUIRED_TRACE_FIELDS - set(trace))
+    schema_version = trace.get("schema_version")
+    required = set(REQUIRED_TRACE_FIELDS)
+    if schema_version == TRACE_SCHEMA_VERSION_V2:
+        required.update(REQUIRED_TRACE_V2_FIELDS)
+    missing = sorted(required - set(trace))
     if missing:
         errors.append(f"trace missing fields: {', '.join(missing)}")
         return errors
@@ -301,7 +321,7 @@ def validate_live_public_video_trace(trace: dict[str, Any]) -> list[str]:
             "trace contains forbidden raw browser/account fields: "
             + ", ".join(sorted(sensitive_paths))
         )
-    if trace["schema_version"] != TRACE_SCHEMA_VERSION:
+    if schema_version not in TRACE_SCHEMA_VERSIONS:
         errors.append("trace has unsupported schema_version")
     if trace["track"] != TRACK:
         errors.append(f"trace.track must be {TRACK}")
@@ -317,6 +337,8 @@ def validate_live_public_video_trace(trace: dict[str, Any]) -> list[str]:
         errors.append("trace.url must be an https public URL for trace.site")
     if not isinstance(trace["benchmark_git_dirty"], bool):
         errors.append("trace.benchmark_git_dirty must be a boolean")
+    if schema_version == TRACE_SCHEMA_VERSION_V2:
+        _validate_v2_provenance(trace, errors)
     availability = trace["availability"]
     if not isinstance(availability, dict) or availability.get("status") not in {
         "available",
@@ -353,11 +375,12 @@ def validate_live_public_video_trace(trace: dict[str, Any]) -> list[str]:
         errors=errors,
     )
 
-    if not screenshot_ids:
+    pre_capture_failure = _is_pre_capture_failure(trace)
+    if not screenshot_ids and not pre_capture_failure:
         errors.append("trace.screenshots must contain at least one private screenshot ref")
-    if not observation_ids:
+    if not observation_ids and not pre_capture_failure:
         errors.append("trace.observations must not be empty")
-    if not tool_call_ids:
+    if not tool_call_ids and not pre_capture_failure:
         errors.append("trace.browser_tool_calls must not be empty")
 
     for row in trace["observations"]:
@@ -403,6 +426,7 @@ def validate_live_public_video_trace(trace: dict[str, Any]) -> list[str]:
         observation_ids,
         failure_ids,
         errors,
+        allow_empty_evidence=pre_capture_failure,
     )
     _validate_failures(trace["failures"], action_ids, tool_call_ids, observation_ids, errors)
     _validate_final_verification(
@@ -410,6 +434,7 @@ def validate_live_public_video_trace(trace: dict[str, Any]) -> list[str]:
         criterion_ids,
         observation_ids,
         errors,
+        allow_empty=pre_capture_failure,
     )
     _validate_outcome(trace, criterion_ids, errors)
     if not isinstance(trace["final_answer"], dict):
@@ -423,6 +448,85 @@ def validate_live_public_video_trace(trace: dict[str, Any]) -> list[str]:
     if not isinstance(trace["qualitative_notes"], dict):
         errors.append("trace.qualitative_notes must be an object")
     return errors
+
+
+def _validate_v2_provenance(trace: dict[str, Any], errors: list[str]) -> None:
+    if not _is_kebab(trace.get("campaign_id")):
+        errors.append("trace.campaign_id must be lowercase kebab-case")
+    seed = trace.get("seed")
+    if not isinstance(seed, int) or isinstance(seed, bool):
+        errors.append("trace.seed must be an integer")
+    for field in ("benchmark_git_revision", "lab_git_revision"):
+        value = trace.get(field)
+        if not _is_lower_hex(value, length=40):
+            errors.append(f"trace.{field} must be a 40-character lowercase git revision")
+    for field in ("manifest_digest", "config_digest", "catalog_digest", "prompt_digest"):
+        if not _is_lower_hex(trace.get(field), length=64):
+            errors.append(f"trace.{field} must be a 64-character lowercase sha256 digest")
+    if trace.get("benchmark_git_dirty") is not False:
+        errors.append("trace.benchmark_git_dirty must be false for v0.2")
+    if trace.get("lab_git_dirty") is not False:
+        errors.append("trace.lab_git_dirty must be false for v0.2")
+    runtime = trace.get("runtime")
+    if not isinstance(runtime, dict):
+        errors.append("trace.runtime must be an object")
+        return
+    expected = {
+        "codex_identifier",
+        "browser_name",
+        "browser_version",
+        "viewport_width",
+        "viewport_height",
+    }
+    missing = sorted(expected - set(runtime))
+    if missing:
+        errors.append("trace.runtime missing fields: " + ", ".join(missing))
+    for field in ("codex_identifier", "browser_name", "browser_version"):
+        if not isinstance(runtime.get(field), str) or not runtime.get(field):
+            errors.append(f"trace.runtime.{field} must be a non-empty string")
+    for field in ("viewport_width", "viewport_height"):
+        value = runtime.get(field)
+        if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+            errors.append(f"trace.runtime.{field} must be a positive integer")
+
+
+def _is_pre_capture_failure(trace: dict[str, Any]) -> bool:
+    if trace.get("schema_version") != TRACE_SCHEMA_VERSION_V2:
+        return False
+    outcome = trace.get("outcome")
+    if not isinstance(outcome, dict) or outcome.get("status") not in {"blocked", "invalid"}:
+        return False
+    failures = trace.get("failures")
+    if not isinstance(failures, list):
+        return False
+    return any(
+        isinstance(row, dict)
+        and row.get("stage") in {"runtime", "capture"}
+        and row.get("type") in {
+            "runtime_browser_controller_failure",
+            "trace_capture_failure",
+        }
+        for row in failures
+    )
+
+
+def _is_lower_hex(value: Any, *, length: int) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == length
+        and all(character in "0123456789abcdef" for character in value)
+    )
+
+
+def _is_kebab(value: Any) -> bool:
+    return (
+        isinstance(value, str)
+        and bool(value)
+        and not value.startswith("-")
+        and not value.endswith("-")
+        and "--" not in value
+        and all(character in "abcdefghijklmnopqrstuvwxyz0123456789-" for character in value)
+    )
 
 
 def _looks_like_task_id(value: Any) -> bool:
@@ -526,6 +630,8 @@ def _validate_criteria(
     observation_ids: set[str],
     failure_ids: set[str],
     errors: list[str],
+    *,
+    allow_empty_evidence: bool = False,
 ) -> set[str]:
     criterion_ids = _validate_id_rows(
         rows,
@@ -559,6 +665,7 @@ def _validate_criteria(
             observation_ids,
             "trace.criteria_results evidence_observation_ids",
             errors,
+            allow_empty=allow_empty_evidence,
         )
         _validate_references(
             row.get("failure_ids"),
@@ -607,12 +714,14 @@ def _validate_final_verification(
     criterion_ids: set[str],
     observation_ids: set[str],
     errors: list[str],
+    *,
+    allow_empty: bool = False,
 ) -> None:
     if not isinstance(value, dict):
         errors.append("trace.final_verification must be an object")
         return
     rows = value.get("checks")
-    if not isinstance(rows, list) or not rows:
+    if not isinstance(rows, list) or (not rows and not allow_empty):
         errors.append("trace.final_verification.checks must be a non-empty list")
         return
     for row in rows:
