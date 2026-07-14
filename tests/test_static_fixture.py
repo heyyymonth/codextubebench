@@ -8,6 +8,7 @@ import unittest
 from copy import deepcopy
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from unittest import mock
 from urllib.request import urlopen
 
 from tubebench.executable import (
@@ -50,6 +51,46 @@ def node_executable() -> str | None:
 
 
 NODE = node_executable()
+
+
+class NodeDiscoveryTests(unittest.TestCase):
+    def test_invalid_node_override_falls_back_to_path_node(self) -> None:
+        path_node = "/usr/bin/node"
+        completed = subprocess.CompletedProcess(
+            [path_node, "--version"],
+            0,
+            stdout="v24.0.0\n",
+            stderr="",
+        )
+        with (
+            mock.patch.dict(os.environ, {"NODE": "/missing/override/node"}),
+            mock.patch.object(shutil, "which", return_value=path_node),
+            mock.patch.object(
+                subprocess,
+                "run",
+                side_effect=[FileNotFoundError("missing override"), completed],
+            ) as run,
+        ):
+            self.assertEqual(path_node, node_executable())
+
+        self.assertEqual(
+            ["/missing/override/node", path_node],
+            [call.args[0][0] for call in run.call_args_list],
+        )
+
+    def test_missing_node_candidates_return_none(self) -> None:
+        with (
+            mock.patch.dict(os.environ, {"NODE": ""}),
+            mock.patch.object(shutil, "which", return_value=None),
+            mock.patch.object(
+                subprocess,
+                "run",
+                side_effect=FileNotFoundError("desktop runtime is absent"),
+            ) as run,
+        ):
+            self.assertIsNone(node_executable())
+
+        self.assertEqual(1, run.call_count)
 
 
 class QuietStaticHandler(SimpleHTTPRequestHandler):

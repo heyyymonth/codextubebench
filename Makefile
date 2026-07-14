@@ -2,7 +2,10 @@ PYTHON ?= python3
 PYTHONPATH := src
 export PYTHONPATH
 
-.PHONY: test validate smoke executable-smoke release-check clean
+.PHONY: check test validate smoke executable-smoke release-check clean
+
+check: test validate release-check
+	$(PYTHON) scripts/validate_paper_artifact.py
 
 test:
 	$(PYTHON) -m unittest discover -s tests -v
