@@ -13,10 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Run public validation
-        run: make test validate release-check
-
-      - name: Validate compiled paper provenance
-        run: python3 scripts/validate_paper_artifact.py
+        run: make check
