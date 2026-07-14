@@ -98,6 +98,34 @@ def valid_trace() -> dict:
     }
 
 
+def valid_trace_v2() -> dict:
+    trace = deepcopy(valid_trace())
+    trace.update(
+        {
+            "schema_version": "live-public-video-trace.v0.2",
+            "run_id": "live-public-video-retained-v1",
+            "campaign_id": "live-public-video-retained-v1",
+            "attempt_id": "live-public-video-retained-v1__LPV-001__seed-17",
+            "seed": 17,
+            "benchmark_git_revision": "1" * 40,
+            "lab_git_revision": "2" * 40,
+            "lab_git_dirty": False,
+            "manifest_digest": "3" * 64,
+            "config_digest": "4" * 64,
+            "catalog_digest": "5" * 64,
+            "prompt_digest": "6" * 64,
+            "runtime": {
+                "codex_identifier": "codex-in-app-browser",
+                "browser_name": "in-app-browser",
+                "browser_version": "1",
+                "viewport_width": 1440,
+                "viewport_height": 900,
+            },
+        }
+    )
+    return trace
+
+
 class LivePublicVideoCatalogTests(unittest.TestCase):
     def test_repository_catalog_validates(self) -> None:
         tasks = load_live_public_video_catalog()
@@ -135,6 +163,53 @@ class LivePublicVideoCatalogTests(unittest.TestCase):
 class LivePublicVideoTraceTests(unittest.TestCase):
     def test_valid_trace_passes(self) -> None:
         self.assertEqual([], validate_live_public_video_trace(valid_trace()))
+
+    def test_valid_v2_trace_passes(self) -> None:
+        self.assertEqual([], validate_live_public_video_trace(valid_trace_v2()))
+
+    def test_v2_trace_requires_clean_pinned_revisions(self) -> None:
+        trace = valid_trace_v2()
+        trace["benchmark_git_dirty"] = True
+        self.assertTrue(
+            any(
+                "benchmark_git_dirty must be false" in error
+                for error in validate_live_public_video_trace(trace)
+            )
+        )
+
+    def test_v2_pre_capture_failure_may_have_no_screenshot(self) -> None:
+        trace = valid_trace_v2()
+        trace["observations"] = []
+        trace["screenshots"] = []
+        trace["browser_tool_calls"] = []
+        trace["actions"] = []
+        trace["criteria_results"][0].update(
+            {
+                "status": "blocked",
+                "score": 0.0,
+                "evidence_observation_ids": [],
+                "failure_ids": ["failure-1"],
+            }
+        )
+        trace["final_verification"] = {"checks": []}
+        trace["failures"] = [
+            {
+                "failure_id": "failure-1",
+                "type": "trace_capture_failure",
+                "stage": "capture",
+                "related_action_id": None,
+                "related_tool_call_id": None,
+                "evidence_observation_ids": [],
+            }
+        ]
+        trace["outcome"].update(
+            {
+                "status": "invalid",
+                "criterion_score": 0.0,
+                "required_criteria_passed": False,
+            }
+        )
+        self.assertEqual([], validate_live_public_video_trace(trace))
 
     def test_missing_screenshot_is_rejected(self) -> None:
         trace = valid_trace()

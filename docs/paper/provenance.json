@@ -1,0 +1,9 @@
+{
+  "aggregate_release_id": "live-public-video-retained-v1",
+  "aggregate_sha256": "b34eb435851272ae7b6201825747f0d4e90bdb7d01dc2d6b9f45457c4c00e9df",
+  "paper_revision": "17611e9121e07b99f6c843115c25735ad5d50c41",
+  "paper_source_dirty": false,
+  "pdf_sha256": "4f959a88861ff1ad2eacac9a5eef5835d612040326a0f073136a94178f145ec4",
+  "schema_version": "tubebench.paper-artifact-provenance.v1",
+  "tectonic_version": "Tectonic 0.16.9"
+}

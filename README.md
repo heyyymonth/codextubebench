@@ -42,13 +42,18 @@ JavaScript globals remain compatibility contracts.
 | Codex protocol validation | One controlled Codex run proving capture/scoring works |
 | Live YouTube pilot | Approved, dated, non-deterministic Codex behavior on public YouTube |
 | Live public video pilot | Approved, dated, non-deterministic Codex behavior on public long-form video pages |
+| Repeated dated live-public campaign | Reviewed repetitions in one dated browser/model configuration; not a deterministic leaderboard |
 | Repeated Codex benchmark result | Pinned tasks, fixed mode/prompt, repeated runs, and aggregate reporting |
 
-Current approved empirical live-public evidence is limited to the
-`live_public_video_v0` 24-slot dated pilot: 22 completed, 2 blocked, and
-0.916667 retained-denominator completion. It is not a repeated Codex benchmark
-result. No current artifact is an approved live YouTube-only result or repeated
-Codex benchmark result.
+Current approved empirical live-public evidence includes the unchanged
+`live_public_video_v0` 24-slot dated pilot (22 completed, 2 blocked, 0.916667
+retained-denominator completion) and the independent
+`live-public-video-retained-v1` campaign (72 fresh attempts, 63 completed, 9
+partial, 0.875 retained-denominator completion). The latter is a repeated dated
+result for one browser/model configuration, not a deterministic leaderboard,
+cross-agent comparison, general competence claim, or repeated deterministic
+Codex benchmark result. No current artifact is an approved live YouTube-only
+result.
 
 ## Quick start
 
@@ -143,6 +148,14 @@ completed and 2 blocked. Only aggregate, redacted metrics are exported to the
 paper repository; raw screenshots, traces, page text, and observations remain
 private lab evidence.
 
+The independent retained-v1 campaign ran 72 fresh slots on July 14, 2026 under
+three repetition IDs. It completed 63 attempts and retained 9 partial
+timestamp-localization outcomes; no attempt failed, blocked, or became invalid.
+Each repetition completed 21 of 24 attempts, and the same three tasks were
+partial in all three repetitions. The reviewed export reports complete evidence
+and screenshot coverage, zero unsupported claims, and zero side-effect
+incidents. The pilot and campaign are not pooled.
+
 See `docs/live_public_video_protocol.md`.
 
 ## Metrics
@@ -171,8 +184,9 @@ Implemented now:
   scoring, exact success, trajectory side effects, verification coverage,
   timestamp error, watch ratio, and step count;
 - live task/trace validation and retained lab-side analysis tooling;
-- live public video task/trace validation, retained lab-side planning tooling,
-  and one reviewed aggregate-only pilot handoff;
+- live public video task/trace validation, retained lab-side campaign tooling,
+  one reviewed aggregate-only pilot handoff, and one independent reviewed
+  aggregate-only 72-attempt campaign handoff;
 - release checks for secrets, local paths, and raw browser artifacts.
 
 Partial or not yet automated:

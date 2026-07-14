@@ -1,6 +1,7 @@
 # Next Codex Experiments
 
-This document specifies the next experiments; it does not execute them.
+This document specifies the experiment sequence and records the completed
+retained live-public milestone; it does not contain raw execution evidence.
 
 ## Set A — Deterministic fixture repeated Codex runs
 
@@ -33,7 +34,11 @@ Do not begin reporting until the worktree is clean and revisions are pinned.
 
 - Starting point: the 24-slot `live_public_video_v0` pilot completed 22 slots
   and blocked 2 on June 30, 2026.
-- Next campaign: 24 tasks x 3 retained seeds = 72 attempts.
+- Completed campaign: 24 tasks x 3 retained seeds = 72 attempts.
+- Planning contract: `live-public-video-retained-v1` uses fresh retained
+  repetition IDs `17`, `29`, and `43`; it does not reuse the pilot seed.
+- Trace contract: `live-public-video-trace.v0.2`, with clean revision and
+  manifest provenance required for every retained slot.
 - Safety: public, unauthenticated, isolated browser, read-only, no downloads,
   no ad interaction, no account mutation, no comments/chat/likes/subscribes.
 - Capture: private traces and screenshots under the lab run tree only.
@@ -43,6 +48,12 @@ Do not begin reporting until the worktree is clean and revisions are pinned.
   replaced.
 - Claim boundary: dated live-public evidence only; do not call the 72-slot
   campaign a deterministic leaderboard.
+- Reviewed result (July 14, 2026): 63 completed, 9 partial, 0 failed, 0 blocked,
+  and 0 invalid. Each repetition completed 21 of 24; the same three
+  timestamp-localization tasks were partial in all three. Evidence and
+  screenshot coverage were complete, with zero unsupported claims and zero
+  side-effect incidents. The aggregate-only release is independent of the
+  pilot and does not authorize cross-agent or general competence claims.
 
 ## Set C — Failure replay
 
@@ -85,7 +96,7 @@ Do not pool modes into one score.
 3. Run Set A in instrumented mode.
 4. Review failures and evaluator coverage.
 5. Run Set A in GUI-native mode.
-6. Run Set B2 as the next live-public retained campaign.
+6. Set B2 complete: retain the reviewed aggregate and keep raw evidence private.
 7. Run Set B only after deterministic capture is stable.
 8. Convert important Set B and Set B2 failures through Set C.
 9. Run Set D after enough matched traces exist.

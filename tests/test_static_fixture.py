@@ -26,21 +26,24 @@ STATIC_DIR = repository_root() / "docs" / "static-fixture"
 def node_executable() -> str | None:
     candidates = [
         os.environ.get("NODE"),
+        shutil.which("node"),
         str(
             Path.home()
             / ".cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node"
         ),
-        shutil.which("node"),
     ]
     for candidate in candidates:
         if not candidate:
             continue
-        completed = subprocess.run(
-            [candidate, "--version"],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
+        try:
+            completed = subprocess.run(
+                [candidate, "--version"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        except OSError:
+            continue
         if completed.returncode == 0:
             return candidate
     return None
