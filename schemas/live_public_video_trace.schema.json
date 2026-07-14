@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/tubebench/live_public_video_trace.schema.json",
+  "title": "TubeBench live public video trace v0.1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "run_id",
+    "attempt_id",
+    "task_id",
+    "task_revision",
+    "track",
+    "site",
+    "task_family",
+    "mode",
+    "agent",
+    "url",
+    "started_at",
+    "ended_at",
+    "benchmark_git_revision",
+    "benchmark_git_dirty",
+    "availability",
+    "observations",
+    "screenshots",
+    "page_refs",
+    "browser_tool_calls",
+    "actions",
+    "watched_intervals",
+    "criteria_results",
+    "final_answer",
+    "final_verification",
+    "failures",
+    "recovery_attempts",
+    "side_effects",
+    "metrics",
+    "outcome",
+    "errors",
+    "qualitative_notes"
+  ],
+  "properties": {
+    "schema_version": {"const": "live-public-video-trace.v0.1"},
+    "task_id": {"type": "string", "pattern": "^LPV-[0-9]{3}$"},
+    "track": {"const": "live_public_video_v0"},
+    "site": {
+      "enum": ["youtube", "mit_ocw", "cspan", "internet_archive", "loc"]
+    },
+    "task_family": {
+      "enum": [
+        "blocked_volatile_reporting",
+        "cross_video_comparison",
+        "metadata_inspection",
+        "timestamp_localization",
+        "transcript_caption_availability",
+        "visual_evidence"
+      ]
+    },
+    "mode": {"enum": ["gui_native", "ui_assisted", "instrumented_browser"]},
+    "benchmark_git_dirty": {"type": "boolean"},
+    "availability": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "enum": ["available", "volatile", "blocked", "unavailable"]
+        }
+      }
+    },
+    "observations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "observation_id",
+          "confidence",
+          "visible_text_snippet",
+          "screenshot_refs",
+          "page_refs"
+        ],
+        "properties": {
+          "observation_id": {"type": "string", "minLength": 1},
+          "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+          "visible_text_snippet": {"type": "string"},
+          "screenshot_refs": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "page_refs": {
+            "type": "array",
+            "items": {"type": "string"}
+          }
+        }
+      }
+    },
+    "screenshots": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["screenshot_id", "path", "description"],
+        "properties": {
+          "screenshot_id": {"type": "string", "minLength": 1},
+          "path": {"type": "string", "minLength": 1},
+          "description": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "criteria_results": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "criterion_id",
+          "required",
+          "weight",
+          "status",
+          "score",
+          "evidence_observation_ids",
+          "failure_ids",
+          "unsupported_claim_count"
+        ],
+        "properties": {
+          "status": {
+            "enum": ["pass", "partial", "fail", "blocked", "not_applicable"]
+          },
+          "score": {"type": "number", "minimum": 0, "maximum": 1},
+          "unsupported_claim_count": {"type": "integer", "minimum": 0}
+        }
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "required": [
+        "status",
+        "retained_slot",
+        "criterion_score",
+        "required_criteria_passed",
+        "unsupported_claim_count"
+      ],
+      "properties": {
+        "status": {
+          "enum": ["completed", "partial", "failed", "blocked", "invalid"]
+        },
+        "retained_slot": {"const": true},
+        "criterion_score": {"type": "number", "minimum": 0, "maximum": 1},
+        "required_criteria_passed": {"type": "boolean"},
+        "unsupported_claim_count": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

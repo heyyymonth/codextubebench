@@ -19,6 +19,11 @@ from .live_youtube import (
     validate_live_youtube_catalog,
     validate_live_youtube_trace,
 )
+from .live_public_video import (
+    load_live_public_video_catalog,
+    validate_live_public_video_catalog,
+    validate_live_public_video_trace,
+)
 from .io import read_json
 from .longform_catalog import load_longform_catalog, validate_longform_catalog
 from .preflight import preflight_fixture
@@ -55,6 +60,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="validate one private live YouTube trace",
     )
     validate_live_trace.add_argument("trace", type=Path)
+
+    validate_live_public = subparsers.add_parser(
+        "validate-live-public-video",
+        help="validate the experimental live_public_video_v0 catalog",
+    )
+    validate_live_public.add_argument("--catalog", type=Path)
+
+    validate_live_public_trace = subparsers.add_parser(
+        "validate-live-public-video-trace",
+        help="validate one private live public video trace",
+    )
+    validate_live_public_trace.add_argument("trace", type=Path)
 
     run = subparsers.add_parser("run", help="run a deterministic mock suite")
     run.add_argument("--catalog", type=Path)
@@ -192,6 +209,25 @@ def main() -> int:
             print("\n".join(errors))
             return 1
         print(f"valid live YouTube trace: {trace['task_id']}")
+        return 0
+    if args.command == "validate-live-public-video":
+        tasks = load_live_public_video_catalog(args.catalog)
+        errors = validate_live_public_video_catalog(tasks)
+        if errors:
+            print("\n".join(errors))
+            return 1
+        print(f"valid live public video catalog: {len(tasks)} tasks")
+        return 0
+    if args.command == "validate-live-public-video-trace":
+        trace = read_json(args.trace)
+        if not isinstance(trace, dict):
+            print("live public video trace root must be an object")
+            return 1
+        errors = validate_live_public_video_trace(trace)
+        if errors:
+            print("\n".join(errors))
+            return 1
+        print(f"valid live public video trace: {trace['task_id']}")
         return 0
     if args.command == "run-executable":
         tasks = load_executable_catalog(args.catalog)

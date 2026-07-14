@@ -22,6 +22,8 @@ JavaScript globals remain compatibility contracts.
   reset, trace capture, replay scoring, and protected-state checks.
 - **Live YouTube track:** 12 read-only public-page task contracts for dated
   product-behavior pilots.
+- **Live public video track:** 24 read-only public-page task contracts across
+  YouTube, MIT OCW, C-SPAN, Internet Archive, and Library of Congress pages.
 - **Codex protocol:** instructions for running one task, capturing its trace,
   and scoring it without exposing evaluator authority.
 - **Trace and result schemas:** actions, observations, browser/tool calls,
@@ -39,10 +41,14 @@ JavaScript globals remain compatibility contracts.
 | Deterministic fixture | Repeated Codex evaluation on a pinned local fixture |
 | Codex protocol validation | One controlled Codex run proving capture/scoring works |
 | Live YouTube pilot | Approved, dated, non-deterministic Codex behavior on public YouTube |
+| Live public video pilot | Approved, dated, non-deterministic Codex behavior on public long-form video pages |
 | Repeated Codex benchmark result | Pinned tasks, fixed mode/prompt, repeated runs, and aggregate reporting |
 
-No current artifact is an approved live YouTube result or a repeated Codex
-benchmark result.
+Current approved empirical live-public evidence is limited to the
+`live_public_video_v0` 24-slot dated pilot: 22 completed, 2 blocked, and
+0.916667 retained-denominator completion. It is not a repeated Codex benchmark
+result. No current artifact is an approved live YouTube-only result or repeated
+Codex benchmark result.
 
 ## Quick start
 
@@ -124,6 +130,21 @@ volatile and must never be pooled with fixture results.
 
 See `docs/live_youtube_protocol.md`.
 
+### Live Public Video
+
+`benchmarks/live_public_video_v0/tasks/catalog.json` contains 24 read-only
+public-page tasks spanning YouTube, MIT OpenCourseWare, C-SPAN, Internet
+Archive, and Library of Congress public-domain film pages. This is a volatile
+pilot lane. Raw screenshots and traces stay in the private lab repository, and
+blocked slots remain in denominator reporting.
+
+The first reviewed v0 pilot retained all 24 slots on June 30, 2026: 22
+completed and 2 blocked. Only aggregate, redacted metrics are exported to the
+paper repository; raw screenshots, traces, page text, and observations remain
+private lab evidence.
+
+See `docs/live_public_video_protocol.md`.
+
 ## Metrics
 
 Current Codex evaluation prioritizes:
@@ -150,6 +171,8 @@ Implemented now:
   scoring, exact success, trajectory side effects, verification coverage,
   timestamp error, watch ratio, and step count;
 - live task/trace validation and retained lab-side analysis tooling;
+- live public video task/trace validation, retained lab-side planning tooling,
+  and one reviewed aggregate-only pilot handoff;
 - release checks for secrets, local paths, and raw browser artifacts.
 
 Partial or not yet automated:
@@ -165,11 +188,13 @@ Partial or not yet automated:
 - `docs/metrics.md`
 - `docs/task_taxonomy.md`
 - `docs/codex_evaluation_protocol.md`
+- `docs/longform_experiment_framework.md`
 - `docs/failure_taxonomy.md`
 - `docs/deterministic_fixture.md`
 - `docs/hosted_fixture.md`
 - `docs/github_pages_fixture.md`
 - `docs/live_youtube_protocol.md`
+- `docs/live_public_video_protocol.md`
 - `docs/next_codex_experiments.md`
 - `docs/limitations.md`
 - `docs/roadmap.md`

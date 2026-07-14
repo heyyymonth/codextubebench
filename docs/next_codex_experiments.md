@@ -29,6 +29,21 @@ Do not begin reporting until the worktree is clean and revisions are pinned.
 - Report: dated outcome counts and failure categories, not a stable success
   rate.
 
+## Set B2 — Live public video retained campaign
+
+- Starting point: the 24-slot `live_public_video_v0` pilot completed 22 slots
+  and blocked 2 on June 30, 2026.
+- Next campaign: 24 tasks x 3 retained seeds = 72 attempts.
+- Safety: public, unauthenticated, isolated browser, read-only, no downloads,
+  no ad interaction, no account mutation, no comments/chat/likes/subscribes.
+- Capture: private traces and screenshots under the lab run tree only.
+- Report: aggregate-only site, task-family, outcome, failure-stage, evidence,
+  screenshot, unsupported-claim, and blocked-rate metrics.
+- Retention: blocked slots remain in the denominator and are never retried or
+  replaced.
+- Claim boundary: dated live-public evidence only; do not call the 72-slot
+  campaign a deterministic leaderboard.
+
 ## Set C — Failure replay
 
 For each important live failure:
@@ -70,6 +85,7 @@ Do not pool modes into one score.
 3. Run Set A in instrumented mode.
 4. Review failures and evaluator coverage.
 5. Run Set A in GUI-native mode.
-6. Run Set B only after deterministic capture is stable.
-7. Convert important Set B failures through Set C.
-8. Run Set D after enough matched traces exist.
+6. Run Set B2 as the next live-public retained campaign.
+7. Run Set B only after deterministic capture is stable.
+8. Convert important Set B and Set B2 failures through Set C.
+9. Run Set D after enough matched traces exist.
