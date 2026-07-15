@@ -251,6 +251,24 @@ input, select, textarea {
   gap: 0.8rem;
 }
 
+.submission details {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.8rem;
+  border: 1px solid #303644;
+  border-radius: 10px;
+}
+
+.submission details[open] summary {
+  margin-bottom: 0.75rem;
+}
+
+.submission details label,
+.submission details input {
+  display: block;
+  width: 100%;
+}
+
 textarea {
   width: 100%;
   resize: vertical;

@@ -69,4 +69,7 @@ side effects, and incomplete restoration.
 The deterministic fixture should cover repeatable control, timestamp,
 verification, restoration, and cross-tab failures. Live YouTube is required
 for ads, consent, UI experiments, real transcript availability, recommendation
-state, live streams, and other volatile product behavior.
+state, live streams, and other volatile product behavior. Live public video
+extends dated evidence collection across sites and exposes availability,
+metadata, cross-site grounding, and timestamp-localization differences without
+turning volatile pages into deterministic fixtures.

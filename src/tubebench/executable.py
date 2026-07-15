@@ -25,6 +25,8 @@ from .temporal_metrics import (
 TASK_SCHEMA_VERSION = "tubecontrol-executable-task.v0.1"
 TRACE_SCHEMA_VERSION = "tubecontrol-executable-trace.v0.1"
 RESULT_SCHEMA_VERSION = "tubecontrol-executable-result.v0.1"
+TRACE_SCHEMA_VERSION_V2 = "tubecontrol-executable-trace.v0.2"
+RESULT_SCHEMA_VERSION_V2 = "tubecontrol-executable-result.v0.2"
 STATIC_RESULT_SCHEMA_VERSION = "codextubebench-static-trace-result.v0.1"
 SUITE_ID = "TubeControl-Executable-v0"
 
@@ -74,6 +76,18 @@ REQUIRED_TRACE_FIELDS = {
     "metrics",
     "passed",
     "errors",
+}
+
+REQUIRED_TRACE_V2_FIELDS = REQUIRED_TRACE_FIELDS | {
+    "state_snapshots",
+    "failures",
+    "recovery_attempts",
+    "final_verification",
+    "qualitative_report",
+    "step_results",
+    "dimensions",
+    "outcome",
+    "trace_valid",
 }
 
 MODES = {
@@ -250,10 +264,16 @@ def validate_executable_catalog(tasks: list[dict[str, Any]]) -> list[str]:
 
 def validate_executable_trace(trace: dict[str, Any]) -> list[str]:
     errors: list[str] = []
-    missing = sorted(REQUIRED_TRACE_FIELDS - trace.keys())
+    schema_version = trace.get("schema_version")
+    required_fields = (
+        REQUIRED_TRACE_V2_FIELDS
+        if schema_version == TRACE_SCHEMA_VERSION_V2
+        else REQUIRED_TRACE_FIELDS
+    )
+    missing = sorted(required_fields - trace.keys())
     if missing:
         errors.append(f"trace missing fields: {', '.join(missing)}")
-    if trace.get("schema_version") != TRACE_SCHEMA_VERSION:
+    if schema_version not in {TRACE_SCHEMA_VERSION, TRACE_SCHEMA_VERSION_V2}:
         errors.append("trace has unsupported schema_version")
     if trace.get("mode") not in MODES:
         errors.append("trace has invalid mode")
@@ -271,6 +291,48 @@ def validate_executable_trace(trace: dict[str, Any]) -> list[str]:
     ):
         if not isinstance(trace.get(field), list):
             errors.append(f"trace.{field} must be a list")
+    if schema_version == TRACE_SCHEMA_VERSION_V2:
+        for field in (
+            "state_snapshots",
+            "failures",
+            "recovery_attempts",
+            "step_results",
+        ):
+            if not isinstance(trace.get(field), list):
+                errors.append(f"trace.{field} must be a list")
+        for field in ("final_verification", "qualitative_report", "dimensions", "outcome"):
+            if not isinstance(trace.get(field), dict):
+                errors.append(f"trace.{field} must be an object")
+        if not isinstance(trace.get("trace_valid"), bool):
+            errors.append("trace.trace_valid must be boolean")
+        id_specs = (
+            ("observations", "observation_id"),
+            ("actions", "action_id"),
+            ("browser_tool_calls", "tool_call_id"),
+            ("state_snapshots", "snapshot_id"),
+            ("failures", "failure_id"),
+            ("recovery_attempts", "recovery_id"),
+        )
+        for field, id_field in id_specs:
+            rows = trace.get(field, [])
+            if not isinstance(rows, list):
+                continue
+            values = [row.get(id_field) for row in rows if isinstance(row, dict)]
+            if len(values) != len(rows) or any(
+                not isinstance(value, str) or not value for value in values
+            ):
+                errors.append(f"trace.{field} entries require {id_field}")
+            elif len(values) != len(set(values)):
+                errors.append(f"trace.{field} contains duplicate {id_field}")
+        outcome = trace.get("outcome")
+        if isinstance(outcome, dict) and outcome.get("status") not in {
+            "completed",
+            "partial",
+            "failed",
+            "blocked",
+            "invalid",
+        }:
+            errors.append("trace.outcome.status is invalid")
     if not isinstance(trace.get("metrics"), dict):
         errors.append("trace.metrics must be an object")
     if not isinstance(trace.get("side_effects"), dict):
@@ -523,6 +585,8 @@ def evaluate_executable_trace(
     task: dict[str, Any],
     trace: dict[str, Any],
 ) -> tuple[dict[str, Any], dict[str, Any]]:
+    if trace.get("schema_version") == TRACE_SCHEMA_VERSION_V2:
+        return _evaluate_executable_trace_v2(task, trace)
     state = deepcopy(task["initial_state"])
     incidents: list[dict[str, Any]] = []
     watched_intervals: list[dict[str, Any]] = []
@@ -735,6 +799,552 @@ def evaluate_executable_trace(
     return evaluated, result
 
 
+def _fraction(passed: int, applicable: int) -> float | None:
+    return round(passed / applicable, 6) if applicable else None
+
+
+def _answer_atoms(
+    answer_spec: dict[str, Any] | None,
+    answer: Any,
+) -> tuple[list[dict[str, Any]], float | None]:
+    if answer_spec is None:
+        return [], None
+    kind = answer_spec["type"]
+    if kind == "contains_all":
+        text = str(answer).casefold()
+        return (
+            [
+                {
+                    "criterion_id": f"answer-contains-{index}",
+                    "expected": value,
+                    "passed": str(value).casefold() in text,
+                }
+                for index, value in enumerate(answer_spec["values"], 1)
+            ],
+            None,
+        )
+    passed, timestamp_error = _answer_result(answer_spec, answer)
+    expected: Any = answer_spec.get("value")
+    if kind == "timestamp":
+        expected = {
+            "target_spans": deepcopy(answer_spec["target_spans"]),
+            "tolerance_seconds": answer_spec["tolerance_seconds"],
+        }
+    return (
+        [
+            {
+                "criterion_id": f"answer-{kind}",
+                "expected": expected,
+                "actual": answer,
+                "passed": passed,
+            }
+        ],
+        timestamp_error,
+    )
+
+
+def _action_matches_reference(task: dict[str, Any], action: dict[str, Any]) -> bool:
+    ignored = {"action_id", "timestamp"}
+    for reference in task["scripted_run"].get("actions", []):
+        if all(action.get(key) == value for key, value in reference.items() if key not in ignored):
+            return True
+    return False
+
+
+def _evaluate_executable_trace_v2(
+    task: dict[str, Any],
+    trace: dict[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    state = deepcopy(task["initial_state"])
+    initial_state = deepcopy(task["initial_state"])
+    incidents: list[dict[str, Any]] = []
+    watched_intervals: list[dict[str, Any]] = []
+    replay_errors: list[str] = []
+    step_results: list[dict[str, Any]] = []
+    recovery_attempts: list[dict[str, Any]] = []
+    pending_failure_ids: list[str] = []
+
+    accepted_channels = set(task["success"].get("accepted_evidence_channels", []))
+    verification_requirements = task["success"].get("verification_requirements", [])
+    predicates = task["success"].get("state_predicates", [])
+    observations_by_sequence: dict[int, list[dict[str, Any]]] = {}
+    observation_by_id: dict[str, dict[str, Any]] = {}
+    for observation in trace.get("observations", []):
+        if not isinstance(observation, dict):
+            continue
+        sequence = observation.get("sequence")
+        if isinstance(sequence, int):
+            observations_by_sequence.setdefault(sequence, []).append(observation)
+        observation_id = observation.get("observation_id")
+        if isinstance(observation_id, str):
+            observation_by_id[observation_id] = observation
+        channel = observation.get("channel")
+        if channel and channel not in EXECUTABLE_MODE_CHANNELS[trace["mode"]]:
+            replay_errors.append(
+                f"observation {observation_id or '?'}: {trace['mode']} does not permit channel: {channel}"
+            )
+
+    trace_failures = [
+        row for row in trace.get("failures", []) if isinstance(row, dict)
+    ]
+    failure_ids_by_action: dict[str, list[str]] = {}
+    for failure in trace_failures:
+        action_id = failure.get("related_action_id")
+        failure_id = failure.get("failure_id")
+        if isinstance(action_id, str) and isinstance(failure_id, str):
+            failure_ids_by_action.setdefault(action_id, []).append(failure_id)
+
+    for sequence, action in enumerate(trace.get("actions", []), 1):
+        before = deepcopy(state)
+        before_predicates = {
+            predicate["path"]: get_path(before, predicate["path"]) == predicate["equals"]
+            for predicate in predicates
+        }
+        action_id = str(action.get("action_id") or f"action-{sequence:04d}")
+        valid = True
+        error_text: str | None = None
+        try:
+            watched, _, _, _ = _apply_action(task, state, action, trace["mode"])
+            watched_intervals.extend(watched)
+        except (KeyError, TypeError, ValueError) as error:
+            valid = False
+            error_text = str(error)
+            replay_errors.append(f"action {sequence}: {error}")
+            state = before
+
+        changed = sorted(changed_paths(before, state)) if valid else []
+        step_incidents: list[dict[str, Any]] = []
+        for path in changed:
+            forbidden = _path_allowed(path, task["forbidden_mutations"])
+            allowed = _path_allowed(path, task["allowed_mutations"])
+            if forbidden or not allowed:
+                incident = {
+                    "sequence": sequence,
+                    "action_id": action_id,
+                    "path": path,
+                    "before": get_path(before, path),
+                    "after": get_path(state, path),
+                    "restored_in_final_state": False,
+                    "severity": "critical" if forbidden else "major",
+                }
+                incidents.append(incident)
+                step_incidents.append(incident)
+
+        progress_paths = [
+            predicate["path"]
+            for predicate in predicates
+            if not before_predicates[predicate["path"]]
+            and get_path(state, predicate["path"]) == predicate["equals"]
+        ]
+        restoration_paths = [
+            path
+            for path in changed
+            if get_path(before, path) != get_path(initial_state, path)
+            and get_path(state, path) == get_path(initial_state, path)
+        ]
+        step_observations = observations_by_sequence.get(sequence, [])
+        evidence_ids = [
+            str(row["observation_id"])
+            for row in step_observations
+            if row.get("channel") in accepted_channels and row.get("observation_id")
+        ]
+        evidence_action = action.get("type") in {"observe", "verify", "watch"}
+        evidence_collected = evidence_action and bool(evidence_ids)
+        verification_completed = (
+            action.get("type") == "verify"
+            and action.get("name") in verification_requirements
+        )
+        reference_aligned = valid and _action_matches_reference(task, action)
+        related_failure_ids = failure_ids_by_action.get(action_id, [])
+        if not valid and not related_failure_ids:
+            related_failure_ids = [f"failure-replay-{sequence:04d}"]
+        if related_failure_ids:
+            pending_failure_ids.extend(related_failure_ids)
+        recovered = bool(
+            valid
+            and pending_failure_ids
+            and (
+                progress_paths
+                or restoration_paths
+                or evidence_collected
+                or verification_completed
+                or reference_aligned
+            )
+        )
+        if recovered:
+            recovery_id = f"recovery-{len(recovery_attempts) + 1:04d}"
+            recovery_attempts.append(
+                {
+                    "recovery_id": recovery_id,
+                    "failure_ids": list(dict.fromkeys(pending_failure_ids)),
+                    "related_action_id": action_id,
+                    "succeeded": True,
+                }
+            )
+            pending_failure_ids.clear()
+        disturbing = bool(step_incidents)
+        useful = bool(
+            valid
+            and not disturbing
+            and (
+                progress_paths
+                or restoration_paths
+                or evidence_collected
+                or verification_completed
+                or reference_aligned
+                or recovered
+            )
+        )
+        step_results.append(
+            {
+                "action_id": action_id,
+                "sequence": sequence,
+                "action_type": action.get("type"),
+                "valid": valid,
+                "permitted": valid and not disturbing,
+                "reference_aligned": reference_aligned,
+                "progress_paths": progress_paths,
+                "changed_paths": changed,
+                "restoration_paths": restoration_paths,
+                "evidence_observation_ids": evidence_ids,
+                "evidence_collected": evidence_collected,
+                "verification_completed": verification_completed,
+                "recovery_succeeded": recovered,
+                "disturbing": disturbing,
+                "useful": useful,
+                "redundant": valid and not disturbing and not useful,
+                "error": error_text,
+            }
+        )
+
+    for incident in incidents:
+        incident["restored_in_final_state"] = get_path(
+            initial_state, incident["path"]
+        ) == get_path(state, incident["path"])
+
+    predicate_results: list[dict[str, Any]] = []
+    initial_predicate_results: list[dict[str, Any]] = []
+    for index, predicate in enumerate(predicates, 1):
+        initial_value = get_path(initial_state, predicate["path"])
+        actual = get_path(state, predicate["path"])
+        initial_predicate_results.append(
+            {
+                "criterion_id": f"state-{index:02d}",
+                "path": predicate["path"],
+                "passed": initial_value == predicate["equals"],
+            }
+        )
+        predicate_results.append(
+            {
+                "criterion_id": f"state-{index:02d}",
+                "path": predicate["path"],
+                "expected": predicate["equals"],
+                "actual": actual,
+                "passed": actual == predicate["equals"],
+            }
+        )
+    answer_results, timestamp_error = _answer_atoms(
+        task["success"].get("answer"), trace.get("final_answer")
+    )
+    state_passed = sum(bool(row["passed"]) for row in predicate_results)
+    answer_passed_count = sum(bool(row["passed"]) for row in answer_results)
+    correctness_applicable = len(predicate_results) + len(answer_results)
+    correctness_passed = state_passed + answer_passed_count
+    correctness_complete = correctness_passed == correctness_applicable
+
+    accepted_observation_ids = [
+        str(row["observation_id"])
+        for row in trace.get("observations", [])
+        if isinstance(row, dict)
+        and row.get("channel") in accepted_channels
+        and row.get("observation_id")
+    ]
+    attributable_evidence_observation_ids = [
+        str(row["observation_id"])
+        for row in trace.get("observations", [])
+        if isinstance(row, dict)
+        and isinstance(row.get("sequence"), int)
+        and row["sequence"] > 0
+        and row.get("channel") in accepted_channels
+        and row.get("observation_id")
+    ]
+    evidence_passed = not accepted_channels or bool(accepted_observation_ids)
+    evidence_applicable = max(correctness_applicable, 1) if accepted_channels else 0
+    evidence_covered = evidence_applicable if evidence_passed else 0
+
+    verification_check_by_name: dict[str, dict[str, Any]] = {}
+    final_verification = trace.get("final_verification", {})
+    if isinstance(final_verification, dict):
+        for check in final_verification.get("checks", []):
+            if isinstance(check, dict) and isinstance(check.get("requirement"), str):
+                verification_check_by_name[check["requirement"]] = check
+    verification_results: list[dict[str, Any]] = []
+    for requirement in verification_requirements:
+        check = verification_check_by_name.get(requirement, {})
+        evidence_refs = [
+            value
+            for value in check.get("evidence_observation_ids", [])
+            if value in observation_by_id
+            and observation_by_id[value].get("channel") in accepted_channels
+        ]
+        performed = requirement in trace.get("verifications", [])
+        verification_results.append(
+            {
+                "requirement": requirement,
+                "performed": performed,
+                "evidence_observation_ids": evidence_refs,
+                "passed": performed and bool(evidence_refs),
+            }
+        )
+    verification_passed_count = sum(
+        bool(row["passed"]) for row in verification_results
+    )
+    verification_complete = verification_passed_count == len(verification_results)
+
+    media_durations = {
+        row["media_id"]: float(row["duration_seconds"]) for row in task["media"]
+    }
+    temporal = temporal_observation_metrics(
+        media_durations, watched_intervals, task["relevant_spans"]
+    )
+    valid_steps = sum(bool(row["valid"]) for row in step_results)
+    useful_steps = sum(bool(row["useful"]) for row in step_results)
+    redundant_steps = sum(bool(row["redundant"]) for row in step_results)
+    disturbing_steps = sum(bool(row["disturbing"]) for row in step_results)
+    invalid_steps = len(step_results) - valid_steps
+    reference_steps = float(task["human_reference"]["steps"])
+    reference_watch = float(task["human_reference"]["watched_seconds"])
+    restoration_required = any(
+        "restor" in str(requirement).casefold()
+        or "original_state" in str(requirement).casefold()
+        for requirement in verification_requirements
+    )
+    restoration_passed = state_passed if restoration_required else 0
+    restoration_applicable = len(predicate_results) if restoration_required else 0
+    disturbance_free = not incidents
+    critical_incident = any(row["severity"] == "critical" for row in incidents)
+    trace_valid = not replay_errors
+    exact_success = correctness_complete and trace_valid
+    grounded_success = exact_success and evidence_passed
+    disturbance_free_success = grounded_success and disturbance_free
+    completed = (
+        grounded_success
+        and verification_complete
+        and disturbance_free
+        and trace_valid
+    )
+    newly_satisfied = sum(
+        1
+        for initial, final in zip(initial_predicate_results, predicate_results)
+        if not initial["passed"] and final["passed"]
+    )
+    task_positive = bool(
+        newly_satisfied
+        or answer_passed_count
+        or attributable_evidence_observation_ids
+        or verification_passed_count
+        or any(row["restoration_paths"] for row in step_results)
+    )
+    if not trace_valid:
+        outcome_status = "invalid"
+    elif completed:
+        outcome_status = "completed"
+    elif critical_incident or not task_positive:
+        outcome_status = "failed"
+    else:
+        outcome_status = "partial"
+
+    side_effects = {
+        "disturbance_free": disturbance_free,
+        "critical": critical_incident,
+        "incident_count": len(incidents),
+        "severity_points": sum(
+            3 if row["severity"] == "critical" else 1 for row in incidents
+        ),
+        "transient_incident_count": sum(
+            bool(row["restored_in_final_state"]) for row in incidents
+        ),
+        "final_incident_count": sum(
+            not bool(row["restored_in_final_state"]) for row in incidents
+        ),
+        "incidents": incidents,
+    }
+    dimensions = {
+        "state_correctness": {
+            "passed": state_passed,
+            "applicable": len(predicate_results),
+            "rate": _fraction(state_passed, len(predicate_results)),
+            "criteria": predicate_results,
+        },
+        "answer_correctness": {
+            "passed": answer_passed_count,
+            "applicable": len(answer_results),
+            "rate": _fraction(answer_passed_count, len(answer_results)),
+            "criteria": answer_results,
+            "timestamp_error_seconds": timestamp_error,
+        },
+        "evidence_grounding": {
+            "passed": evidence_covered,
+            "applicable": evidence_applicable,
+            "rate": _fraction(evidence_covered, evidence_applicable),
+            "accepted_observation_ids": accepted_observation_ids,
+        },
+        "verification": {
+            "passed": verification_passed_count,
+            "applicable": len(verification_results),
+            "rate": _fraction(verification_passed_count, len(verification_results)),
+            "criteria": verification_results,
+        },
+        "protected_state": {
+            "incident_free": disturbance_free,
+            "incident_count": len(incidents),
+            "critical_incident_count": sum(
+                row["severity"] == "critical" for row in incidents
+            ),
+            "transient_incident_count": side_effects["transient_incident_count"],
+            "final_incident_count": side_effects["final_incident_count"],
+        },
+        "restoration": {
+            "passed": restoration_passed,
+            "applicable": restoration_applicable,
+            "rate": _fraction(restoration_passed, restoration_applicable),
+        },
+        "step_execution": {
+            "total": len(step_results),
+            "valid": valid_steps,
+            "useful": useful_steps,
+            "redundant": redundant_steps,
+            "invalid": invalid_steps,
+            "disturbing": disturbing_steps,
+            "valid_rate": _fraction(valid_steps, len(step_results)),
+            "useful_rate": _fraction(useful_steps, len(step_results)),
+            "redundant_rate": _fraction(redundant_steps, len(step_results)),
+            "invalid_rate": _fraction(invalid_steps, len(step_results)),
+            "disturbing_rate": _fraction(disturbing_steps, len(step_results)),
+        },
+        "recovery": {
+            "attempted": len(recovery_attempts),
+            "succeeded": sum(bool(row["succeeded"]) for row in recovery_attempts),
+            "success_rate": _fraction(
+                sum(bool(row["succeeded"]) for row in recovery_attempts),
+                len(recovery_attempts),
+            ),
+        },
+        "temporal": {
+            "watched_seconds": temporal["watched_seconds"],
+            "watch_ratio": temporal["watch_ratio"],
+            "relevant_watch_ratio": temporal["relevant_watch_ratio"],
+            "over_observation_score": temporal["over_observation_score"],
+            "under_observation_score": temporal["under_observation_score"],
+            "timestamp_error_seconds": timestamp_error,
+        },
+        "efficiency": {
+            "action_count": len(step_results),
+            "reference_action_count": reference_steps,
+            "action_reference_ratio": (
+                round(len(step_results) / reference_steps, 6)
+                if reference_steps
+                else None
+            ),
+            "watched_seconds": temporal["watched_seconds"],
+            "reference_watched_seconds": reference_watch,
+            "watch_reference_ratio": (
+                round(float(temporal["watched_seconds"]) / reference_watch, 6)
+                if reference_watch
+                else None
+            ),
+        },
+        "trace": {
+            "valid": trace_valid,
+            "error_count": len(replay_errors),
+            "failure_stage": (
+                trace_failures[0].get("stage")
+                if trace_failures
+                else ("action" if replay_errors else None)
+            ),
+        },
+    }
+    metrics = {
+        "success": exact_success,
+        "grounded_success": grounded_success,
+        "disturbance_free_success": disturbance_free_success,
+        "step_count": len(step_results),
+        "browser_tool_call_count": len(trace.get("browser_tool_calls", [])),
+        "verification_score": _fraction(
+            verification_passed_count, len(verification_results)
+        ),
+        "side_effect_incident_count": len(incidents),
+        "state_restoration_score": _fraction(
+            restoration_passed, restoration_applicable
+        ),
+        "timestamp_localization_error_seconds": timestamp_error,
+        "watch_time_seconds": temporal["watched_seconds"],
+        "watch_ratio": temporal["watch_ratio"],
+        "failure_category": (
+            trace_failures[0].get("type") if trace_failures else None
+        ),
+        "relevant_watch_ratio": temporal["relevant_watch_ratio"],
+        "over_observation_score": temporal["over_observation_score"],
+        "under_observation_score": temporal["under_observation_score"],
+        "state_tracking_score": None,
+        "information_channel_selection": 1.0 if evidence_passed and accepted_channels else None,
+        "cost": deepcopy(
+            trace.get(
+                "cost",
+                {"model_calls": None, "input_tokens": None, "output_tokens": None, "usd": None},
+            )
+        ),
+        "latency": deepcopy(
+            trace.get(
+                "latency",
+                {
+                    "wall_clock_seconds": None,
+                    "active_agent_seconds": None,
+                    "playback_wall_seconds": temporal["watched_seconds"],
+                },
+            )
+        ),
+        "predicate_results": predicate_results,
+    }
+    outcome = {
+        "status": outcome_status,
+        "exact_success": exact_success,
+        "disturbance_free_success": disturbance_free_success,
+        "task_positive_progress": task_positive,
+        "critical_incident": critical_incident,
+    }
+    evaluated = deepcopy(trace)
+    evaluated["watched_intervals"] = watched_intervals
+    evaluated["final_oracle_state"] = state
+    evaluated["side_effects"] = side_effects
+    evaluated["metrics"] = metrics
+    evaluated["passed"] = disturbance_free_success
+    evaluated["errors"] = list(trace.get("errors", [])) + replay_errors
+    evaluated["step_results"] = step_results
+    evaluated["dimensions"] = dimensions
+    evaluated["outcome"] = outcome
+    evaluated["recovery_attempts"] = recovery_attempts
+    evaluated["trace_valid"] = trace_valid
+    result = {
+        "schema_version": RESULT_SCHEMA_VERSION_V2,
+        "run_id": trace["run_id"],
+        "task_id": task["id"],
+        "task_revision": task["revision"],
+        "mode": trace["mode"],
+        "agent": trace["agent"],
+        "benchmark_git_revision": trace["benchmark_git_revision"],
+        "benchmark_git_dirty": trace["benchmark_git_dirty"],
+        "passed": disturbance_free_success,
+        "outcome": outcome,
+        "dimensions": dimensions,
+        "step_results": step_results,
+        "metrics": metrics,
+        "side_effects": side_effects,
+        "errors": evaluated["errors"],
+    }
+    return evaluated, result
+
+
 class FixtureSession:
     def __init__(
         self,
@@ -746,9 +1356,12 @@ class FixtureSession:
         benchmark_revision: str | None = None,
         benchmark_dirty: bool | None = None,
         execution_surface: dict[str, Any] | None = None,
+        trace_version: str = TRACE_SCHEMA_VERSION,
     ) -> None:
         if mode not in task["supported_modes"]:
             raise ValueError(f"{task['id']} does not support mode {mode}")
+        if trace_version not in {TRACE_SCHEMA_VERSION, TRACE_SCHEMA_VERSION_V2}:
+            raise ValueError(f"unsupported executable trace version: {trace_version}")
         self.task = task
         self.mode = mode
         self.agent = agent
@@ -756,8 +1369,10 @@ class FixtureSession:
         self.benchmark_revision = benchmark_revision
         self.benchmark_dirty = benchmark_dirty
         self.execution_surface = deepcopy(execution_surface)
+        self.trace_version = trace_version
         self.started_at = utc_now()
         self.state = deepcopy(task["initial_state"])
+        self._id_counters: dict[str, int] = {}
         self.actions: list[dict[str, Any]] = []
         self.observations: list[dict[str, Any]] = []
         self.browser_tool_calls: list[dict[str, Any]] = []
@@ -769,6 +1384,65 @@ class FixtureSession:
         self.final_answer: Any = None
         self.screenshots: list[str] = []
         self.errors: list[str] = []
+        self.state_snapshots: list[dict[str, Any]] = []
+        self.failures: list[dict[str, Any]] = []
+        self.recovery_attempts: list[dict[str, Any]] = []
+        self.final_verification: dict[str, Any] = {"checks": []}
+        self.qualitative_report: dict[str, Any] = {
+            "evidence_refs": [],
+            "state_uncertainty": None,
+            "failure_notes": None,
+            "recovery_notes": None,
+        }
+        if self.trace_version == TRACE_SCHEMA_VERSION_V2:
+            self._record_snapshot("initial")
+
+    def _next_id(self, prefix: str) -> str:
+        self._id_counters[prefix] = self._id_counters.get(prefix, 0) + 1
+        return f"{prefix}-{self._id_counters[prefix]:04d}"
+
+    def _record_snapshot(self, phase: str) -> None:
+        if self.trace_version != TRACE_SCHEMA_VERSION_V2:
+            return
+        self.state_snapshots.append(
+            {
+                "snapshot_id": self._next_id("snapshot"),
+                "sequence": len(self.actions),
+                "phase": phase,
+                "captured_at": utc_now(),
+                "state": deepcopy(self.state),
+            }
+        )
+
+    def _record_observation(self, value: dict[str, Any]) -> dict[str, Any]:
+        observation = deepcopy(value)
+        observation.setdefault("sequence", len(self.actions))
+        observation.setdefault("timestamp", utc_now())
+        if self.trace_version == TRACE_SCHEMA_VERSION_V2:
+            observation.setdefault("observation_id", self._next_id("observation"))
+        self.observations.append(observation)
+        return observation
+
+    def _view_payload(self) -> dict[str, Any]:
+        view = agent_view(self.task, self.state, self.mode)
+        if self.trace_version == TRACE_SCHEMA_VERSION_V2:
+            view["event_log"] = {
+                "actions": [
+                    {
+                        "action_id": row.get("action_id"),
+                        "action_type": row.get("type"),
+                    }
+                    for row in self.actions[-20:]
+                ],
+                "observations": [
+                    {
+                        "observation_id": row.get("observation_id"),
+                        "channel": row.get("channel"),
+                    }
+                    for row in self.observations[-20:]
+                ],
+            }
+        return view
 
     def reset(self) -> None:
         self.__init__(
@@ -779,6 +1453,7 @@ class FixtureSession:
             benchmark_revision=self.benchmark_revision,
             benchmark_dirty=self.benchmark_dirty,
             execution_surface=self.execution_surface,
+            trace_version=self.trace_version,
         )
 
     def view(self) -> dict[str, Any]:
@@ -787,42 +1462,46 @@ class FixtureSession:
             if self.mode in {"instrumented_browser", "hybrid"}
             else "screenshot"
         )
-        observation = {
+        observation = self._record_observation({
             "sequence": len(self.actions),
             "channel": channel,
             "timestamp": utc_now(),
-        }
-        self.observations.append(observation)
+        })
         if channel == "dom_player_state":
             self.dom_player_state_reads.append(
                 {"sequence": len(self.actions), "players": deepcopy(self.state["players"])}
             )
-        return agent_view(self.task, self.state, self.mode)
+        return self._view_payload()
 
     def apply(self, action: dict[str, Any], *, source: str = "browser") -> dict[str, Any]:
         copied = deepcopy(action)
+        if self.trace_version == TRACE_SCHEMA_VERSION_V2:
+            copied["action_id"] = self._next_id("action")
+            copied["timestamp"] = utc_now()
         self.actions.append(copied)
-        self.browser_tool_calls.append(
-            {
-                "sequence": len(self.actions),
-                "source": source,
-                "name": copied.get("type"),
-                "timestamp": utc_now(),
-            }
-        )
+        tool_call = {
+            "sequence": len(self.actions),
+            "source": source,
+            "name": copied.get("type"),
+            "timestamp": utc_now(),
+        }
+        if self.trace_version == TRACE_SCHEMA_VERSION_V2:
+            tool_call["tool_call_id"] = self._next_id("tool-call")
+            tool_call["related_action_id"] = copied["action_id"]
+        self.browser_tool_calls.append(tool_call)
         try:
             watched, observations, cues, chapters = _apply_action(
                 self.task, self.state, copied, self.mode
             )
             self.watched_intervals.extend(watched)
-            self.observations.extend(
-                {
+            for row in observations:
+                self._record_observation(
+                    {
                     "sequence": len(self.actions),
                     "timestamp": utc_now(),
                     **row,
-                }
-                for row in observations
-            )
+                    }
+                )
             self.transcript_cues_used.extend(cues)
             self.chapter_ids_used.extend(chapters)
             if copied.get("type") == "verify" and copied.get("name"):
@@ -833,7 +1512,7 @@ class FixtureSession:
                     if self.mode in {"instrumented_browser", "hybrid"}
                     else "screenshot"
                 )
-                self.observations.append(
+                self._record_observation(
                     {
                         "sequence": len(self.actions),
                         "timestamp": utc_now(),
@@ -848,16 +1527,104 @@ class FixtureSession:
                             "players": deepcopy(self.state["players"]),
                         }
                     )
+            self._record_snapshot("post_action")
         except (KeyError, TypeError, ValueError) as error:
             self.errors.append(str(error))
+            if self.trace_version == TRACE_SCHEMA_VERSION_V2:
+                self.failures.append(
+                    {
+                        "failure_id": self._next_id("failure"),
+                        "type": "invalid_action",
+                        "stage": "action",
+                        "summary": str(error),
+                        "recoverable": True,
+                        "related_action_id": copied.get("action_id"),
+                        "related_tool_call_id": tool_call.get("tool_call_id"),
+                        "evidence_observation_ids": [],
+                    }
+                )
+                self._record_snapshot("invalid_action")
             raise
-        return agent_view(self.task, self.state, self.mode)
+        return self._view_payload()
 
-    def submit(self, answer: Any, verifications: list[str] | None = None) -> None:
+    def submit(
+        self,
+        answer: Any,
+        verifications: list[str] | None = None,
+        qualitative_report: dict[str, Any] | None = None,
+    ) -> None:
         self.final_answer = answer
-        for verification in verifications or []:
-            if verification not in self.verifications:
-                self.verifications.append(verification)
+        if self.trace_version == TRACE_SCHEMA_VERSION_V2:
+            accepted = set(
+                self.task["success"].get("accepted_evidence_channels", [])
+            )
+            available_channels = EXECUTABLE_MODE_CHANNELS[self.mode]
+            evidence_channel = next(
+                (
+                    channel
+                    for channel in (
+                        "dom_player_state",
+                        "player_state",
+                        "screenshot",
+                        "transcript",
+                        "chapters",
+                        "video_observation",
+                        "audit_log",
+                    )
+                    if channel in accepted and channel in available_channels
+                ),
+                None,
+            )
+            for verification in verifications or []:
+                if verification in self.verifications:
+                    continue
+                self.apply(
+                    {
+                        "type": "verify",
+                        "name": verification,
+                        "channel": evidence_channel or "screenshot",
+                    },
+                    source="browser-submission",
+                )
+            checks = []
+            for verification in self.verifications:
+                sequences = [
+                    index
+                    for index, action in enumerate(self.actions, 1)
+                    if action.get("type") == "verify"
+                    and action.get("name") == verification
+                ]
+                evidence_ids = [
+                    str(row["observation_id"])
+                    for row in self.observations
+                    if row.get("sequence") in sequences
+                    and row.get("channel") in accepted
+                    and row.get("observation_id")
+                ]
+                checks.append(
+                    {
+                        "requirement": verification,
+                        "evidence_observation_ids": evidence_ids,
+                    }
+                )
+            self.final_verification = {
+                "checks": checks
+            }
+            report = qualitative_report or {}
+            refs = report.get("evidence_refs", [])
+            if isinstance(refs, str):
+                refs = [value.strip() for value in refs.split(",") if value.strip()]
+            self.qualitative_report = {
+                "evidence_refs": refs if isinstance(refs, list) else [],
+                "state_uncertainty": report.get("state_uncertainty"),
+                "failure_notes": report.get("failure_notes"),
+                "recovery_notes": report.get("recovery_notes"),
+            }
+            self._record_snapshot("submitted")
+        else:
+            for verification in verifications or []:
+                if verification not in self.verifications:
+                    self.verifications.append(verification)
 
     def trace(self) -> dict[str, Any]:
         revision, dirty = (
@@ -866,7 +1633,7 @@ class FixtureSession:
             else benchmark_provenance()
         )
         raw = {
-            "schema_version": TRACE_SCHEMA_VERSION,
+            "schema_version": self.trace_version,
             "run_id": self.run_id,
             "task_id": self.task["id"],
             "task_revision": self.task["revision"],
@@ -894,6 +1661,26 @@ class FixtureSession:
         }
         if self.execution_surface is not None:
             raw["execution_surface"] = deepcopy(self.execution_surface)
+        if self.trace_version == TRACE_SCHEMA_VERSION_V2:
+            raw.update(
+                {
+                    "state_snapshots": deepcopy(self.state_snapshots),
+                    "failures": deepcopy(self.failures),
+                    "recovery_attempts": deepcopy(self.recovery_attempts),
+                    "final_verification": deepcopy(self.final_verification),
+                    "qualitative_report": deepcopy(self.qualitative_report),
+                    "step_results": [],
+                    "dimensions": {},
+                    "outcome": {
+                        "status": "invalid",
+                        "exact_success": False,
+                        "disturbance_free_success": False,
+                        "task_positive_progress": False,
+                        "critical_incident": False,
+                    },
+                    "trace_valid": False,
+                }
+            )
         evaluated, _ = evaluate_executable_trace(self.task, raw)
         return evaluated
 

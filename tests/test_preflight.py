@@ -190,7 +190,7 @@ class HostedFixtureEndpointTests(unittest.TestCase):
                 {
                     "type": "hosted_https",
                     "public_url": base_url,
-                    "fixture_version": "codextubebench-fixture.v0.1",
+                    "fixture_version": "codextubebench-fixture.v0.2",
                     "deployment_id": "test-deployment",
                 },
                 trace["execution_surface"],

@@ -13,6 +13,7 @@ from .executable import (
     validate_executable_catalog,
 )
 from .fixture_server import serve
+from .fixture_export import export_fixture_session
 from .io import read_jsonl
 from .live_youtube import (
     load_live_youtube_catalog,
@@ -25,7 +26,6 @@ from .live_public_video import (
     validate_live_public_video_trace,
 )
 from .io import read_json
-from .longform_catalog import load_longform_catalog, validate_longform_catalog
 from .preflight import preflight_fixture
 from .runner import run_suite, summarize_rows
 
@@ -36,12 +36,6 @@ def build_parser() -> argparse.ArgumentParser:
 
     validate = subparsers.add_parser("validate", help="validate the task catalog")
     validate.add_argument("--catalog", type=Path)
-
-    validate_longform = subparsers.add_parser(
-        "validate-longform",
-        help="validate the long-form seed task catalog",
-    )
-    validate_longform.add_argument("--catalog", type=Path)
 
     validate_executable = subparsers.add_parser(
         "validate-executable",
@@ -154,6 +148,26 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help=argparse.SUPPRESS,
     )
+
+    export_session = subparsers.add_parser(
+        "export-fixture-session",
+        help="export, score, and delete one evaluator-authorized fixture session",
+    )
+    export_session.add_argument("--url", required=True)
+    export_session.add_argument("--session-id", required=True)
+    export_session.add_argument("--trace-output", type=Path, required=True)
+    export_session.add_argument("--result-output", type=Path, required=True)
+    export_session.add_argument(
+        "--oracle-token-env",
+        default="CODEXTUBEBENCH_ORACLE_TOKEN",
+    )
+    export_session.add_argument("--expected-revision")
+    export_session.add_argument("--timeout", type=float, default=10.0)
+    export_session.add_argument(
+        "--allow-http-loopback-test",
+        action="store_true",
+        help=argparse.SUPPRESS,
+    )
     return parser
 
 
@@ -174,14 +188,6 @@ def main() -> int:
             raise SystemExit("\n".join(errors))
         manifest = run_suite(tasks, args.agent, args.seed, args.output)
         print(json.dumps(manifest, indent=2, sort_keys=True))
-        return 0
-    if args.command == "validate-longform":
-        tasks = load_longform_catalog(args.catalog)
-        errors = validate_longform_catalog(tasks)
-        if errors:
-            print("\n".join(errors))
-            return 1
-        print(f"valid long-form catalog: {len(tasks)} tasks")
         return 0
     if args.command == "validate-executable":
         tasks = load_executable_catalog(args.catalog)
@@ -260,6 +266,19 @@ def main() -> int:
         )
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0 if valid else 1
+    if args.command == "export-fixture-session":
+        report = export_fixture_session(
+            url=args.url,
+            session_id=args.session_id,
+            trace_output=args.trace_output,
+            result_output=args.result_output,
+            oracle_token_env=args.oracle_token_env,
+            expected_revision=args.expected_revision,
+            allow_http_loopback_test=args.allow_http_loopback_test,
+            timeout=args.timeout,
+        )
+        print(json.dumps(report, indent=2, sort_keys=True))
+        return 0
     if args.command == "serve-fixture":
         serve(
             host=args.host,

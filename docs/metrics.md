@@ -49,6 +49,11 @@ belong in browser/tool-call count unless the controller encodes them as actions.
 
 **Implementation:** `src/tubebench/executable.py`.
 
+Executable v0.2 additionally reports valid, useful, redundant, invalid, and
+disturbing step counts and rates. A useful step makes declared task progress,
+collects accepted evidence, performs required verification, follows an allowed
+reference operation, or restores/recovers state without a disturbance.
+
 ### 3. Browser/tool-call count
 
 **Definition:** number of recorded browser observation or tool invocations.
@@ -87,8 +92,8 @@ verification_score =
 **Edge cases:** no required checks gives `1.0`; duplicate observations do not
 increase coverage; independence and evidence quality remain separate concerns.
 
-**Status:** implemented as requirement coverage; verification quality is
-partial.
+**Status:** implemented as requirement coverage. Executable v0.2 additionally
+requires accepted evidence identifiers for a verification to pass.
 
 **Implementation:** `src/tubebench/temporal_metrics.py`,
 `src/tubebench/executable.py`.
@@ -213,8 +218,8 @@ records, and final claim.
 categories remain separate; infrastructure failures are not capability
 categories.
 
-**Status:** planned for automatic deterministic assignment; typed live failure
-records and the manual taxonomy are available.
+**Status:** implemented for typed invalid-action failures and trace failure
+stages in executable v0.2; broader semantic failure labeling remains reviewed.
 
 **Implementation:** nullable output in `src/tubebench/executable.py`; taxonomy
 in `docs/failure_taxonomy.md`.
@@ -230,6 +235,9 @@ in `docs/failure_taxonomy.md`.
 | Information channel selection | correctness and efficiency of chosen evidence channels | Partial |
 | Cost | model/tool cost with dated pricing metadata | Partial |
 | Latency | wall, active-agent, playback, and tool-wait time | Partial |
+| Ungated action efficiency | action count / human-reference action count | Implemented in executable v0.2 |
+| Ungated watch efficiency | watched seconds / human-reference watched seconds | Implemented where the reference is nonzero |
+| Failure recovery | successful linked recovery actions / recorded recovery attempts | Implemented in executable v0.2 |
 
 These metrics are diagnostic until collection is reliable across Codex modes.
 

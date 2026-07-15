@@ -1,7 +1,0 @@
-{
-  "schema_version": "1.0",
-  "id": "mock-transient",
-  "agent_class": "browser-only-mock",
-  "runner_agent": "mock-transient",
-  "description": "Completes the task, temporarily disturbs a protected path, then restores final state."
-}
