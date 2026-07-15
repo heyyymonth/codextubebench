@@ -79,6 +79,27 @@ Restoring a wrong action does not erase the incident. For example, pausing the
 wrong tab and later resuming it is a side-effect failure with successful final
 restoration.
 
+## Granular executable evaluation
+
+Hosted deterministic sessions use the additive executable v0.2 contract. The
+evaluator derives every dimension from the task's committed state predicates,
+answer evaluator, accepted evidence channels, verification requirements,
+allowed and forbidden mutations, relevant spans, and human reference. It does
+not introduce a free-form judge rubric.
+
+Each action is replayed and marked for validity, permitted mutation, newly
+achieved progress, evidence collection, verification, recovery/restoration,
+disturbance, usefulness, and redundancy. Attempt results report separate
+state, answer, grounding, verification, protected-state, restoration, step,
+recovery, temporal, efficiency, and trace-validity dimensions. Applicable and
+passed counts remain visible, including `null` rates for non-applicable
+dimensions.
+
+No weighted partial-credit composite is produced. Exact success and
+disturbance-free success remain secondary audit fields. The outcome class is
+`completed`, `partial`, `failed`, `blocked`, or `invalid`; infrastructure
+blockers are recorded separately from interpretable agent behavior.
+
 ## Eligibility
 
 Agent crashes, timeouts, malformed actions, safe refusals, and tool failures are

@@ -42,6 +42,11 @@
         <h2>Audit log</h2>
         <pre id="audit-log"></pre>
       </section>
+      <section id="event-log-section" data-session-only hidden>
+        <h2>Recorded evidence identifiers</h2>
+        <p>These identifiers expose only recorded event types and channels, never evaluator state.</p>
+        <pre id="event-log"></pre>
+      </section>
       <section class="submission" data-session-only>
         <h2>Finish task</h2>
         <label for="answer">Final answer</label>
@@ -49,6 +54,17 @@
         <fieldset id="verifications">
           <legend>Verification performed</legend>
         </fieldset>
+        <details>
+          <summary>Structured evidence report (complete only when the prompt requires it)</summary>
+          <label for="evidence-refs">Evidence identifiers, comma separated</label>
+          <input id="evidence-refs" type="text" autocomplete="off">
+          <label for="state-uncertainty">State uncertainty</label>
+          <textarea id="state-uncertainty" rows="2"></textarea>
+          <label for="failure-notes">Failure notes</label>
+          <textarea id="failure-notes" rows="2"></textarea>
+          <label for="recovery-notes">Recovery notes</label>
+          <textarea id="recovery-notes" rows="2"></textarea>
+        </details>
         <button id="submit-answer" class="primary">Submit answer</button>
         <p id="status" role="status"></p>
       </section>

@@ -18,7 +18,7 @@ variables, and JavaScript globals remain compatibility contracts.
 | Evidence lane | Current status | Interpretation |
 | --- | --- | --- |
 | Deterministic mock/replay | Four frozen diagnostic conditions over the 24-task `tubecontrol` catalog | Evaluator and aggregation checks, not agent performance |
-| Deterministic fixture | 12 runnable `TubeControl-Executable-v0` tasks and retained TCE-002 protocol-validation traces | Reproducible task design and protocol evidence; no repeated benchmark result yet |
+| Deterministic fixture | 12 runnable `TubeControl-Executable-v0` tasks, additive granular v0.2 tracing, and retained TCE-002 protocol-validation traces | Reproducible task design and protocol evidence; no repeated benchmark result yet |
 | Live public video pilot | 24 retained slots: 22 completed and 2 blocked | Dated exploratory aggregate; blocked slots remain in the denominator |
 | Retained live-public campaign | 72 fresh attempts: 63 completed and 9 partial | One repeated dated browser/model configuration, not a leaderboard or general competence claim |
 | Live YouTube-only track | Catalog, schemas, validator, and private analysis path exist | No approved public or paper aggregate |
@@ -101,6 +101,13 @@ Browsers that cannot reach loopback may use the gated
 [GitHub Pages fallback](docs/github_pages_fixture.md) is limited to TCE-002 and
 uses `score-static-trace`; it is not a replacement for the dynamic fixture.
 
+Hosted sessions emit `tubecontrol-executable-trace.v0.2`, which adds stable
+event identifiers, evaluator-only state snapshots, deterministic step flags,
+failure/recovery records, outcome classes, and a dimension vector. The
+original v0.1 trace and result contracts remain supported for local scripted
+runs and the static TCE-002 fixture. Granular results intentionally contain no
+single partial-credit composite.
+
 ## Experimental tracks
 
 - [Deterministic fixture](docs/deterministic_fixture.md): exact reset,
@@ -135,8 +142,9 @@ donations, chat, downloads, purchases, ad interaction, or account mutation.
 Version `0.2.0` removes the unused `validate-longform` command, abandoned
 `longform_seed` catalog and validators, orphan long-form/rubric schemas,
 unreferenced configuration examples, and superseded planning documents. Active
-diagnostic, executable, live-YouTube, live-public, fixture, scoring, and static
-trace interfaces are unchanged.
+diagnostic, live-YouTube, live-public, and static trace interfaces are
+unchanged. The executable track adds v0.2 trace/result contracts and the
+`export-fixture-session` command while retaining v0.1 compatibility.
 
 ## Contributing and security
 

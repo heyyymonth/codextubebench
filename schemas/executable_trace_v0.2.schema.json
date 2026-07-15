@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/tubebench/executable-trace-v0.2.schema.json",
+  "title": "TubeControl-Executable-v0 granular evaluated trace",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "run_id", "task_id", "task_revision", "mode", "agent",
+    "benchmark_git_revision", "benchmark_git_dirty", "started_at", "ended_at",
+    "observations", "screenshots", "actions", "browser_tool_calls",
+    "watched_intervals", "transcript_cues_used", "chapter_ids_used",
+    "dom_player_state_reads", "verifications", "final_answer",
+    "final_oracle_state", "side_effects", "metrics", "passed", "errors",
+    "state_snapshots", "failures", "recovery_attempts", "final_verification",
+    "qualitative_report", "step_results", "dimensions", "outcome", "trace_valid"
+  ],
+  "properties": {
+    "schema_version": {"const": "tubecontrol-executable-trace.v0.2"},
+    "run_id": {"type": "string", "minLength": 1},
+    "task_id": {"type": "string", "pattern": "^TCE-[0-9]{3}$"},
+    "task_revision": {"type": "integer", "minimum": 1},
+    "mode": {"enum": ["gui_native", "ui_assisted", "instrumented_browser", "hybrid"]},
+    "agent": {"type": "string", "minLength": 1},
+    "execution_surface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "public_url", "fixture_version", "deployment_id"],
+      "properties": {
+        "type": {"enum": ["local", "hosted_https", "provider_runner", "manual"]},
+        "public_url": {"type": "string", "minLength": 1},
+        "fixture_version": {"type": "string", "minLength": 1},
+        "deployment_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "benchmark_git_revision": {"type": "string", "minLength": 1},
+    "benchmark_git_dirty": {"type": ["boolean", "null"]},
+    "started_at": {"type": "string", "format": "date-time"},
+    "ended_at": {"type": "string", "format": "date-time"},
+    "observations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["observation_id", "sequence", "channel", "timestamp"],
+        "properties": {"observation_id": {"type": "string", "minLength": 1}}
+      }
+    },
+    "screenshots": {"type": "array", "items": {"type": "string"}},
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["action_id", "type", "timestamp"],
+        "properties": {"action_id": {"type": "string", "minLength": 1}}
+      }
+    },
+    "browser_tool_calls": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["tool_call_id", "sequence", "source", "name", "timestamp"],
+        "properties": {"tool_call_id": {"type": "string", "minLength": 1}}
+      }
+    },
+    "watched_intervals": {"type": "array", "items": {"type": "object"}},
+    "transcript_cues_used": {"type": "array", "items": {"type": "string"}},
+    "chapter_ids_used": {"type": "array", "items": {"type": "string"}},
+    "dom_player_state_reads": {"type": "array", "items": {"type": "object"}},
+    "verifications": {"type": "array", "items": {"type": "string"}},
+    "final_answer": {},
+    "final_oracle_state": {"type": "object"},
+    "side_effects": {"type": "object"},
+    "metrics": {"type": "object"},
+    "passed": {"type": "boolean"},
+    "errors": {"type": "array", "items": {"type": "string"}},
+    "state_snapshots": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["snapshot_id", "sequence", "phase", "captured_at", "state"],
+        "properties": {"snapshot_id": {"type": "string", "minLength": 1}}
+      }
+    },
+    "failures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["failure_id", "type", "stage", "summary", "recoverable"],
+        "properties": {"failure_id": {"type": "string", "minLength": 1}}
+      }
+    },
+    "recovery_attempts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["recovery_id", "failure_ids", "related_action_id", "succeeded"],
+        "properties": {"recovery_id": {"type": "string", "minLength": 1}}
+      }
+    },
+    "final_verification": {"type": "object"},
+    "qualitative_report": {"type": "object"},
+    "step_results": {"type": "array", "items": {"type": "object"}},
+    "dimensions": {"type": "object"},
+    "outcome": {
+      "type": "object",
+      "required": ["status", "exact_success", "disturbance_free_success", "task_positive_progress", "critical_incident"],
+      "properties": {
+        "status": {"enum": ["completed", "partial", "failed", "blocked", "invalid"]}
+      }
+    },
+    "trace_valid": {"type": "boolean"}
+  }
+}

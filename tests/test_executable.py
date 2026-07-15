@@ -8,6 +8,7 @@ from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from tubebench.executable import (
+    TRACE_SCHEMA_VERSION_V2,
     FixtureSession,
     agent_view,
     load_executable_catalog,
@@ -41,6 +42,73 @@ class ExecutableCatalogTests(unittest.TestCase):
 
 
 class ExecutableRunnerTests(unittest.TestCase):
+    def test_v2_granular_trace_reports_dimensions_without_composite(self) -> None:
+        task = load_executable_catalog()[1]
+        session = FixtureSession(
+            task,
+            "instrumented_browser",
+            "test-agent",
+            benchmark_revision="a" * 40,
+            benchmark_dirty=False,
+            trace_version=TRACE_SCHEMA_VERSION_V2,
+        )
+        session.view()
+        session.apply({"type": "pause", "player_id": "player-b"})
+        session.submit(None, ["final_playback_state"])
+        trace = session.trace()
+        self.assertEqual([], validate_executable_trace(trace))
+        self.assertEqual("completed", trace["outcome"]["status"])
+        self.assertEqual(1.0, trace["dimensions"]["state_correctness"]["rate"])
+        self.assertEqual(1.0, trace["dimensions"]["verification"]["rate"])
+        self.assertGreater(trace["dimensions"]["step_execution"]["useful"], 0)
+        self.assertEqual(2, trace["dimensions"]["step_execution"]["total"])
+        self.assertEqual(1.0, trace["dimensions"]["efficiency"]["action_reference_ratio"])
+        self.assertTrue(trace["step_results"][-1]["verification_completed"])
+        self.assertNotIn("criterion_score", json.dumps(trace["dimensions"]))
+        self.assertNotIn("weighted_efficiency", trace["metrics"])
+
+    def test_v2_wrong_answer_with_grounded_observation_is_partial(self) -> None:
+        task = load_executable_catalog()[8]
+        session = FixtureSession(
+            task,
+            "instrumented_browser",
+            "test-agent",
+            trace_version=TRACE_SCHEMA_VERSION_V2,
+        )
+        session.view()
+        session.apply(
+            {
+                "type": "observe",
+                "channel": "transcript",
+                "media_id": "systems-lecture",
+                "cue_id": "sys-components",
+            }
+        )
+        session.submit("planner only", ["transcript_cue_checked"])
+        trace = session.trace()
+        self.assertEqual("partial", trace["outcome"]["status"])
+        self.assertLess(trace["dimensions"]["answer_correctness"]["rate"], 1.0)
+        self.assertEqual(1.0, trace["dimensions"]["evidence_grounding"]["rate"])
+
+    def test_v2_invalid_action_can_record_a_recovery_without_hiding_error(self) -> None:
+        task = load_executable_catalog()[1]
+        session = FixtureSession(
+            task,
+            "instrumented_browser",
+            "test-agent",
+            trace_version=TRACE_SCHEMA_VERSION_V2,
+        )
+        session.view()
+        with self.assertRaisesRegex(ValueError, "unknown player"):
+            session.apply({"type": "pause", "player_id": "missing-player"})
+        session.apply({"type": "pause", "player_id": "player-b"})
+        session.submit(None, ["final_playback_state"])
+        trace = session.trace()
+        self.assertFalse(trace["trace_valid"])
+        self.assertEqual(1, trace["dimensions"]["step_execution"]["invalid"])
+        self.assertEqual(1, trace["dimensions"]["recovery"]["succeeded"])
+        self.assertTrue(trace["errors"])
+
     def test_scripted_baseline_passes_and_emits_valid_traces(self) -> None:
         tasks = load_executable_catalog()
         with tempfile.TemporaryDirectory() as directory:

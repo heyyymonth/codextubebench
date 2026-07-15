@@ -184,6 +184,18 @@ function renderVerifications(view) {
   }
 }
 
+function renderEventLog(view) {
+  const section = document.querySelector("#event-log-section");
+  const output = document.querySelector("#event-log");
+  if (!view.event_log) {
+    section.hidden = true;
+    output.textContent = "";
+    return;
+  }
+  section.hidden = false;
+  output.textContent = JSON.stringify(view.event_log, null, 2);
+}
+
 function render(view) {
   currentView = view;
   document.querySelector("#task-mode").textContent = view.task.mode;
@@ -192,6 +204,7 @@ function render(view) {
   renderPlayers(view);
   renderEvidence(view);
   renderVerifications(view);
+  renderEventLog(view);
   const auditSection = document.querySelector("#audit-section");
   auditSection.hidden = !view.audit_log.length;
   document.querySelector("#audit-log").textContent = JSON.stringify(view.audit_log, null, 2);
@@ -266,6 +279,12 @@ document.querySelector("#submit-answer").addEventListener("click", async () => {
       body: JSON.stringify({
         answer: document.querySelector("#answer").value,
         verifications,
+        qualitative_report: {
+          evidence_refs: document.querySelector("#evidence-refs").value,
+          state_uncertainty: document.querySelector("#state-uncertainty").value || null,
+          failure_notes: document.querySelector("#failure-notes").value || null,
+          recovery_notes: document.querySelector("#recovery-notes").value || null,
+        },
       }),
     });
     setStatus("Answer submitted. The evaluator can now export and score this session.");

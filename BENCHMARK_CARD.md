@@ -21,7 +21,10 @@ controls, not deployed-agent results.
 ### Deterministic fixture
 
 The 12-task executable catalog provides benchmark-owned state, exact reset,
-trace replay, protected-state checks, and an evaluator-only oracle. Retained
+trace replay, protected-state checks, and an evaluator-only oracle. Hosted
+sessions add stable step/evidence identifiers, failure and recovery records,
+and separate correctness, grounding, verification, safety, temporal, and
+efficiency dimensions without a single partial-credit composite. Retained
 TCE-002 traces are protocol validation; repeated task-complete results have not
 yet been reported.
 
@@ -54,9 +57,10 @@ cross-agent, leaderboard, or general competence claims.
 
 ## Metrics
 
-Primary metrics are success, step count, browser/tool-call count, verification,
-side-effect incidents, state restoration, timestamp localization error, watch
-time/watch ratio, and failure category. Implementation status is documented in
+Metrics include exact and disturbance-free success, state and answer atoms,
+evidence-linked grounding, verification, step usefulness/validity, side-effect
+incidents, state restoration, recovery, timestamp localization error, watch
+coverage, and ungated reference efficiency. Implementation status is documented in
 [docs/metrics.md](docs/metrics.md).
 
 ## Evidence and privacy boundary

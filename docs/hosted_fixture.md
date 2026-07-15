@@ -140,6 +140,23 @@ instrumented-browser attempt. Store its raw and evaluated traces in the
 ignored lab run tree and label it `deterministic fixture smoke attempt`. Do
 not export it to the paper or treat it as repeated empirical evidence.
 
+After submission, export, replay-score, and delete the session with the token
+loaded only from the evaluator environment:
+
+```bash
+python3 -m tubebench.cli export-fixture-session \
+  --url https://fixture.example \
+  --session-id '<browser-visible session id>' \
+  --expected-revision "$(git rev-parse HEAD)" \
+  --trace-output ../youtube-benchmark-lab/runs/deterministic_codex/smoke/trace.json \
+  --result-output ../youtube-benchmark-lab/runs/deterministic_codex/smoke/result.json
+```
+
+The command validates the v0.2 trace, independently replays it, writes hashes
+only in its sanitized report, and requires evaluator-authorized session
+deletion. It never accepts or prints the evaluator token as a command-line
+argument.
+
 ## Teardown
 
 Disable public routing first, then stop and remove the ephemeral service:

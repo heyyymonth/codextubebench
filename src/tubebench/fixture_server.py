@@ -15,13 +15,15 @@ from urllib.parse import urlparse
 
 from .executable import (
     SUITE_ID,
+    TRACE_SCHEMA_VERSION,
+    TRACE_SCHEMA_VERSION_V2,
     FixtureSession,
     benchmark_provenance,
     catalog_digest,
     load_executable_catalog,
 )
 
-FIXTURE_VERSION = "codextubebench-fixture.v0.1"
+FIXTURE_VERSION = "codextubebench-fixture.v0.2"
 DEFAULT_HOSTED_PORT = 8080
 DEFAULT_SESSION_TTL_SECONDS = 3600
 DEFAULT_MAX_SESSIONS = 128
@@ -232,6 +234,11 @@ class FixtureApplication:
             benchmark_revision=self.session_benchmark_revision,
             benchmark_dirty=self.session_benchmark_dirty,
             execution_surface=self.execution_surface,
+            trace_version=(
+                TRACE_SCHEMA_VERSION_V2
+                if self.surface_type == "hosted_https"
+                else TRACE_SCHEMA_VERSION
+            ),
         )
         with self.lock:
             now = self.clock()
@@ -261,7 +268,7 @@ class FixtureApplication:
 
 def make_handler(application: FixtureApplication) -> type[BaseHTTPRequestHandler]:
     class Handler(BaseHTTPRequestHandler):
-        server_version = "TubeBenchFixture/0.1"
+        server_version = "TubeBenchFixture/0.2"
 
         def log_message(self, format: str, *args: Any) -> None:
             return
@@ -398,7 +405,11 @@ def make_handler(application: FixtureApplication) -> type[BaseHTTPRequestHandler
                         return
                     if route == "submit":
                         body = self._body()
-                        session.submit(body.get("answer"), body.get("verifications", []))
+                        session.submit(
+                            body.get("answer"),
+                            body.get("verifications", []),
+                            body.get("qualitative_report"),
+                        )
                         self._json(HTTPStatus.OK, {"accepted": True})
                         return
                     if route == "reset":
