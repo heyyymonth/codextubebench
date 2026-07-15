@@ -3,9 +3,36 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="refresh" content="0; url=./tubebench.pdf">
     <title>TubeBench Paper PDF</title>
     <link rel="canonical" href="./tubebench.pdf">
+    <script>
+      window.addEventListener("DOMContentLoaded", async () => {
+        const link = document.querySelector('[data-testid="research-paper-pdf-link"]');
+        const status = document.querySelector('[data-testid="research-paper-status"]');
+        const fallbackUrl = `./tubebench.pdf?refresh=${Date.now()}`;
+        link.href = fallbackUrl;
+
+        try {
+          const response = await fetch(`./provenance.json?refresh=${Date.now()}`, {
+            cache: "no-store",
+          });
+          if (!response.ok) {
+            throw new Error(`provenance request failed: ${response.status}`);
+          }
+          const provenance = await response.json();
+          const digest = provenance.pdf_sha256;
+          if (typeof digest !== "string" || !/^[0-9a-f]{64}$/.test(digest)) {
+            throw new Error("provenance PDF checksum is invalid");
+          }
+          const versionedUrl = `./tubebench.pdf?v=${digest.slice(0, 12)}`;
+          link.href = versionedUrl;
+          status.textContent = `Opening published revision ${digest.slice(0, 12)}...`;
+          window.location.replace(versionedUrl);
+        } catch (error) {
+          status.textContent = "Automatic revision check failed; use the refreshed PDF link below.";
+        }
+      });
+    </script>
     <style>
       body {
         color: #172033;
@@ -23,6 +50,7 @@
   <body>
     <main>
       <h1>TubeBench paper PDF</h1>
+      <p data-testid="research-paper-status">Checking the published PDF revision...</p>
       <p>
         The current TubeBench research paper is published as a PDF artifact.
         If it does not open automatically, use

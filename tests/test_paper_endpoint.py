@@ -20,7 +20,10 @@ class PaperEndpointTests(unittest.TestCase):
         self.assertGreater(pdf.stat().st_size, 0)
         self.assertEqual(b"%PDF", pdf.read_bytes()[:4])
         self.assertIn("tubebench.pdf", index)
-        self.assertIn('href="./paper/tubebench.pdf"', fixture)
+        self.assertNotIn('http-equiv="refresh"', index)
+        self.assertIn("provenance.pdf_sha256", index)
+        self.assertIn('cache: "no-store"', index)
+        self.assertIn('href="./paper/"', fixture)
         self.assertIn('data-testid="research-paper-link"', fixture)
 
     def test_public_paper_provenance_matches_pdf(self) -> None:
