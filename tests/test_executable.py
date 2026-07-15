@@ -42,6 +42,21 @@ class ExecutableCatalogTests(unittest.TestCase):
 
 
 class ExecutableRunnerTests(unittest.TestCase):
+    def test_v2_noop_without_attributable_progress_is_failed(self) -> None:
+        task = load_executable_catalog()[1]
+        session = FixtureSession(
+            task,
+            "instrumented_browser",
+            "test-agent",
+            trace_version=TRACE_SCHEMA_VERSION_V2,
+        )
+        session.view()
+        session.submit(None, [])
+        trace = session.trace()
+        self.assertEqual("failed", trace["outcome"]["status"])
+        self.assertFalse(trace["outcome"]["task_positive_progress"])
+        self.assertEqual(0, trace["dimensions"]["step_execution"]["total"])
+
     def test_v2_granular_trace_reports_dimensions_without_composite(self) -> None:
         task = load_executable_catalog()[1]
         session = FixtureSession(
@@ -105,6 +120,7 @@ class ExecutableRunnerTests(unittest.TestCase):
         session.submit(None, ["final_playback_state"])
         trace = session.trace()
         self.assertFalse(trace["trace_valid"])
+        self.assertEqual("invalid", trace["outcome"]["status"])
         self.assertEqual(1, trace["dimensions"]["step_execution"]["invalid"])
         self.assertEqual(1, trace["dimensions"]["recovery"]["succeeded"])
         self.assertTrue(trace["errors"])

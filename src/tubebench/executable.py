@@ -1059,6 +1059,15 @@ def _evaluate_executable_trace_v2(
         and row.get("channel") in accepted_channels
         and row.get("observation_id")
     ]
+    attributable_evidence_observation_ids = [
+        str(row["observation_id"])
+        for row in trace.get("observations", [])
+        if isinstance(row, dict)
+        and isinstance(row.get("sequence"), int)
+        and row["sequence"] > 0
+        and row.get("channel") in accepted_channels
+        and row.get("observation_id")
+    ]
     evidence_passed = not accepted_channels or bool(accepted_observation_ids)
     evidence_applicable = max(correctness_applicable, 1) if accepted_channels else 0
     evidence_covered = evidence_applicable if evidence_passed else 0
@@ -1132,11 +1141,13 @@ def _evaluate_executable_trace_v2(
     task_positive = bool(
         newly_satisfied
         or answer_passed_count
-        or accepted_observation_ids
+        or attributable_evidence_observation_ids
         or verification_passed_count
         or any(row["restoration_paths"] for row in step_results)
     )
-    if completed:
+    if not trace_valid:
+        outcome_status = "invalid"
+    elif completed:
         outcome_status = "completed"
     elif critical_incident or not task_positive:
         outcome_status = "failed"
