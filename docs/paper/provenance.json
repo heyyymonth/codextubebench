@@ -1,9 +1,9 @@
 {
   "aggregate_release_id": "live-public-video-retained-v1",
   "aggregate_sha256": "b34eb435851272ae7b6201825747f0d4e90bdb7d01dc2d6b9f45457c4c00e9df",
-  "paper_revision": "29f22f191cc6c45b53df6272db2e14c2c72247fa",
+  "paper_revision": "06def52bec0d3e6e30a50cad48a4c6ba41d0c629",
   "paper_source_dirty": false,
-  "pdf_sha256": "99d60fcc98b41f0d7889c7ea14c85dff9800889835bee62140b7cfae45c74d47",
+  "pdf_sha256": "72952a6c8402092cee658e422d144185614dd6c5d677a75726bdf1d98007ded8",
   "schema_version": "tubebench.paper-artifact-provenance.v1",
   "tectonic_version": "Tectonic 0.16.9"
 }
