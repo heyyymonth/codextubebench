@@ -2,92 +2,88 @@
 
 ## Purpose
 
-TubeBench evaluates Codex on YouTube browser-use tasks. It captures what
-Codex observes and does, checks whether the requested outcome is achieved, and
-classifies failures involving grounding, media state, verification, side
-effects, restoration, timestamps, and observation strategy.
+TubeBench evaluates browser-use agents on long-form video tasks. It records the
+trajectory needed to distinguish task completion from grounded completion,
+verification quality, side effects, restoration, temporal error, and runtime
+or environment blockers.
 
-This is an empirical evaluation harness, not a claim that Codex has already
-been comprehensively benchmarked.
+This repository provides benchmark infrastructure and bounded experimental
+evidence. It does not establish general browser-agent competence.
 
-## Tracks
+## Tracks and evidence
 
-### Deterministic fixture track
+### Deterministic diagnostics
 
-- Benchmark-owned YouTube-like local player.
-- Exact reset and evaluator-only oracle.
-- Reproducible task and trace replay.
-- Primary track for repeated scoring and failure reproduction.
+The 24-task `tubecontrol` catalog and mock adapters validate evaluator,
+trajectory, and aggregate behavior. Their frozen paper rows are synthetic
+controls, not deployed-agent results.
 
-### Live YouTube track
+### Deterministic fixture
 
-- Real public YouTube pages at a recorded date and time.
-- Read-only tasks across long videos, live streams, and long music/ambient
-  videos.
-- Used to discover product-behavior failures and test transfer.
-- Non-deterministic and never pooled with fixture results.
+The 12-task executable catalog provides benchmark-owned state, exact reset,
+trace replay, protected-state checks, and an evaluator-only oracle. Retained
+TCE-002 traces are protocol validation; repeated task-complete results have not
+yet been reported.
 
-### Live public video track
+### Live YouTube
 
-- Real public long-form video pages at a recorded date and time.
-- Read-only tasks across YouTube, MIT OpenCourseWare, C-SPAN, Internet
-  Archive, and Library of Congress public-domain film pages.
-- Used for dimensional browser-use observations across sites, task families,
-  evidence coverage, blocked states, and unsupported claims.
-- One reviewed dated v0 pilot has been run and reported as aggregate-only
-  evidence: 24 retained slots, 22 completed, 2 blocked.
-- Non-deterministic and never pooled with fixture results.
+The 12-task catalog defines future signed-out, read-only pilots on public
+YouTube pages. Pages and UI state are volatile. No live YouTube-only aggregate
+is currently approved for publication.
+
+### Live public video
+
+The 24-task catalog covers YouTube, MIT OpenCourseWare, C-SPAN, Internet
+Archive, and Library of Congress pages. The June 30, 2026 pilot retained all 24
+slots, completed 22, and blocked 2. The independent July 14, 2026 campaign
+retained 72 attempts, completed 63, and classified 9 as partial. The same three
+timestamp-localization tasks were partial in all three repetitions.
+
+The live-public results apply only to their dated browser/model configuration.
+They are not pooled with each other or with fixture results, and do not support
+cross-agent, leaderboard, or general competence claims.
 
 ## Current task assets
 
-- 12 executable deterministic tasks in
-  `benchmarks/tubecontrol_executable_v0/tasks/catalog.json`.
-- 12 live YouTube task contracts in
-  `benchmarks/live_youtube_v0/tasks/catalog.json`.
-- 24 live public video task contracts in
-  `benchmarks/live_public_video_v0/tasks/catalog.json`.
-- 24 compatibility mock/replay tasks used for evaluator diagnostics.
-- 10 schema-level long-form seed contracts that are not executable fixtures.
+- `benchmarks/tubecontrol/tasks/catalog.json`: 24 diagnostic tasks;
+- `benchmarks/tubecontrol_executable_v0/tasks/catalog.json`: 12 deterministic
+  executable tasks;
+- `benchmarks/live_youtube_v0/tasks/catalog.json`: 12 live YouTube contracts;
+- `benchmarks/live_public_video_v0/tasks/catalog.json`: 24 live-public
+  contracts.
 
-## Current core metrics
+## Metrics
 
-- success;
-- step count;
-- browser/tool-call count;
-- verification score;
-- side-effect/disturbance score;
-- state restoration score;
-- timestamp localization error when applicable;
-- watch time/watch ratio when applicable;
-- failure category.
+Primary metrics are success, step count, browser/tool-call count, verification,
+side-effect incidents, state restoration, timestamp localization error, watch
+time/watch ratio, and failure category. Implementation status is documented in
+[docs/metrics.md](docs/metrics.md).
 
-State restoration and failure classification are not yet fully automated across
-both tracks. See `docs/metrics.md` for exact status.
+## Evidence and privacy boundary
 
-## Result interpretation
+Raw live traces, screenshots, observations, page text, browser state, profiles,
+cookies, tokens, account data, and transcript dumps remain private lab
+evidence. The paper repository receives reviewed aggregates containing only
+allowlisted, redacted fields.
 
-- Mock/replay results are synthetic diagnostics.
-- A single local Codex run is protocol validation.
-- A one-pass live run is a dated pilot observation.
-- The live public video v0 pilot is a formal dated aggregate-only result, not a
-  repeated benchmark score.
-- A repeated Codex benchmark result requires pinned revisions, a fixed prompt
-  and mode, complete task coverage, repeated runs, and aggregate reporting.
+Blocked, partial, failed, and invalid retained attempts are not silently
+replaced. Diagnostic, protocol-validation, pilot, and repeated-campaign labels
+remain explicit in every report.
 
 ## Exclusions
 
-Live tasks do not authorize account mutation, engagement actions, public
-posting, purchases, moderation, downloads, ad interaction, login, or use of
-personal browser profiles.
+Public tasks do not authorize account mutation, engagement actions, posting,
+purchases, moderation, downloads, ad interaction, login, or use of personal
+browser profiles. Public write-action tasks require benchmark-owned fixtures.
 
 ## Known limitations
 
-The local fixture uses a virtual media timeline rather than encoded audiovisual
-content. Live YouTube pages drift. Full browser/OS side-effect coverage,
-provider-driven Codex automation, generic restoration scoring, and complete
-cost/latency telemetry are not implemented.
+The deterministic player uses a virtual media timeline rather than decoded
+audiovisual content. Live pages drift. Browser/controller normalization,
+generic restoration scoring, automatic failure labeling, provider-driven
+repeated execution, and complete cost/latency telemetry remain incomplete.
 
 ## Non-affiliation
 
-TubeBench is independent and is not affiliated with, endorsed by, or
-sponsored by YouTube, Google, or OpenAI.
+TubeBench is independent and is not affiliated with, endorsed by, or sponsored
+by YouTube, Google, or OpenAI.

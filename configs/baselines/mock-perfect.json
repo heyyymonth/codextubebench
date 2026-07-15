@@ -1,7 +1,0 @@
-{
-  "schema_version": "1.0",
-  "id": "mock-perfect",
-  "agent_class": "browser-only-mock",
-  "runner_agent": "mock-perfect",
-  "description": "Executes each task's canonical mock actions."
-}

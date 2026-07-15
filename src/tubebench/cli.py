@@ -25,7 +25,6 @@ from .live_public_video import (
     validate_live_public_video_trace,
 )
 from .io import read_json
-from .longform_catalog import load_longform_catalog, validate_longform_catalog
 from .preflight import preflight_fixture
 from .runner import run_suite, summarize_rows
 
@@ -36,12 +35,6 @@ def build_parser() -> argparse.ArgumentParser:
 
     validate = subparsers.add_parser("validate", help="validate the task catalog")
     validate.add_argument("--catalog", type=Path)
-
-    validate_longform = subparsers.add_parser(
-        "validate-longform",
-        help="validate the long-form seed task catalog",
-    )
-    validate_longform.add_argument("--catalog", type=Path)
 
     validate_executable = subparsers.add_parser(
         "validate-executable",
@@ -174,14 +167,6 @@ def main() -> int:
             raise SystemExit("\n".join(errors))
         manifest = run_suite(tasks, args.agent, args.seed, args.output)
         print(json.dumps(manifest, indent=2, sort_keys=True))
-        return 0
-    if args.command == "validate-longform":
-        tasks = load_longform_catalog(args.catalog)
-        errors = validate_longform_catalog(tasks)
-        if errors:
-            print("\n".join(errors))
-            return 1
-        print(f"valid long-form catalog: {len(tasks)} tasks")
         return 0
     if args.command == "validate-executable":
         tasks = load_executable_catalog(args.catalog)

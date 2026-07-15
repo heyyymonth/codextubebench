@@ -30,6 +30,13 @@ Ads, consent, UI experiments, transcript availability, live edges, and
 recommendations may change. Live results are dated pilot evidence and are not
 pooled with fixture results.
 
+### Live public video
+
+The live-public track applies the same read-only, dated evidence rules across
+multiple public long-form video sites. The 24-slot exploratory pilot and the
+independent 72-attempt retained campaign remain separate from each other, from
+live YouTube-only work, and from deterministic fixture results.
+
 ## Access modes
 
 - `gui_native`: rendered page, screenshots, pointer, and keyboard.
@@ -37,8 +44,8 @@ pooled with fixture results.
   captions.
 - `instrumented_browser`: UI-assisted plus declared DOM, accessibility, or
   media-element state tools.
-- `hybrid_enterprise`: retained compatibility identifier for explicitly scoped
-  helper tools; not a current primary comparison.
+- `hybrid`: instrumented-browser access plus explicitly declared local helper
+  artifacts.
 
 Every report separates modes. A result is not meaningful without its access
 mode.
@@ -79,13 +86,14 @@ eligible outcomes when the task environment itself was valid. Fixture reset,
 oracle, catalog, or evaluator failures are infrastructure failures and are
 excluded from Codex success denominators.
 
-On live YouTube, page unavailability, mandatory sign-in, or an ad that prevents
-safe execution is recorded separately from a Codex capability failure.
+On public live tracks, page unavailability, mandatory sign-in, or an ad that
+prevents safe execution is recorded separately from an agent capability
+failure.
 
 ## Repetitions
 
 - one run: protocol validation or failure discovery;
-- 3 runs: engineering pilot only;
+- 3 retained repetitions: within-campaign stability evidence only;
 - 5-10 runs per task: initial repeated Codex benchmark analysis;
 - live runs: report observation date, availability coverage, and outcome
   counts; do not imply stationarity.
